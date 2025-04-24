@@ -9,19 +9,20 @@ import yaml
 import pytest
 import jubilant
 
+
 def pytest_addoption(parser):
     group = parser.getgroup("jubilant")
     group.addoption(
         "--model",
         action="store",
         default=None,
-        help='Juju model name to target.',
+        help="Juju model name to target.",
     )
     group.addoption(
         "--keep-models",
         action="store",
         default=None,
-        help='Skip model teardown.',
+        help="Skip model teardown.",
     )
     group.addoption(
         "--no-setup",
@@ -66,32 +67,41 @@ def juju(request):
         yield jubilant.Juju(model=model)
     else:
         with jubilant.temp_model(
-                keep=request.config.getoption("--keep-models")
+            keep=request.config.getoption("--keep-models")
         ) as juju:
             yield juju
 
 
 class _Result(dataclasses.dataclass):
     charm: Path
-    resources: Optional[Dict[str,str]]
+    resources: Optional[Dict[str, str]]
 
 
-def pack_charm(root:Union[Path, str]="./") -> _Result:
+def pack_charm(root: Union[Path, str] = "./") -> _Result:
     """Pack a local charm and return it along with its resources."""
-    proc = subprocess.run(shlex.split(f"charmcraft pack -p {root}"),
-                          check=True, capture_output=True, text=True)
+    proc = subprocess.run(
+        shlex.split(f"charmcraft pack -p {root}"),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
 
     # Don't ask me why this goes to stderr.
     charm = proc.stderr.strip().splitlines()[-1].split()[-1]
 
     for meta_name in ("metadata.yaml", "charmcraft.yaml"):
-        if (meta_yaml:=root/meta_name).exists():
+        if (meta_yaml := root / meta_name).exists():
             logging.debug(f"found metadata file: {meta_yaml}")
             meta = yaml.safe_load(meta_yaml.read_text())
-            resources = {resource: res_meta["upstream-source"] for resource, res_meta in meta["resources"].items()}
+            resources = {
+                resource: res_meta["upstream-source"]
+                for resource, res_meta in meta["resources"].items()
+            }
             break
     else:
         resources = None
-        logging.error(f"metadata/charmcraft.yaml not found at {root}; unable to load resources")
+        logging.error(
+            f"metadata/charmcraft.yaml not found at {root}; unable to load resources"
+        )
 
     return _Result(charm=charm, resources=resources)
