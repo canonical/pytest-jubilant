@@ -11,6 +11,11 @@ jobs:
     name: Build wheel on ubuntu (where else???)
     runs-on: ubuntu-latest
 
+    environment: pypi
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
@@ -54,7 +59,7 @@ jobs:
           asset_name: pytest_jubilant-${{ steps.get_version.outputs.VERSION }}-py3-none-any.whl
           asset_content_type: application/wheel
 
-      - name: Publish to PyPI
+      # retrieve your distributions here
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+
