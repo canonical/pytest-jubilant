@@ -29,28 +29,28 @@ Target a specific, existing model instead of provisioning a fresh, temporary one
 Do note that this model won't be torn down at the end of the test run.
 Usage:
 
-> juju add-model mymodel
-> pytest ./tests/integration -k test_foo --model "mymodel"  
+    juju add-model mymodel
+    pytest ./tests/integration -k test_foo --model "mymodel"  
 
 ## `--switch`
 Switch to the (randomly-named) model that is currently in scope, so you can keep an 
 eye on the juju status as the tests progress. 
 (Won't work well if you're running multiple test modules in parallel.)
 
-> pytest ./tests/integration --switch
+    pytest ./tests/integration --switch
 
 ## `--keep-models`
 Skip destroying the newly generated models when the tests are done. 
 Usage:
 
-> pytest ./tests/integration --keep-models  
+    pytest ./tests/integration --keep-models  
 
 
 ## `--no-teardown`
 Skip all tests marked with `teardown`. Useful to inspect the state of a model after a (failed) test run.
 Implies `--keep-models`.
 
-> pytest ./tests/integration --no-teardown 
+    pytest ./tests/integration --no-teardown 
 
 
 ## `--no-setup`
@@ -58,8 +58,8 @@ Skip all tests marked with `setup`. Especially useful when re-running a test on 
 See [this article](https://discourse.charmhub.io/t/14006) for the idea behind this workflow.
 Usage:
 
-> pytest ./tests/integration --no-teardown # make a note of the temporary model name
-> pytest ./tests/integration --model <temporary model name> --no-setup 
+    pytest ./tests/integration --no-teardown # make a note of the temporary model name
+    pytest ./tests/integration --model <temporary model name> --no-setup 
 
 
 # Markers
