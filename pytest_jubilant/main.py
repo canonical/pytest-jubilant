@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+"""Main plugin module."""
 import dataclasses
 import logging
 import shlex
@@ -53,12 +58,19 @@ def pytest_configure(config):
     )
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(config:pytest.Config, items):
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
             if "teardown" in item.keywords:
                 item.add_marker(skipper)
+
+        if config.getoption("--keep-models"):
+            logging.warning("--no-teardown implies --keep-models")
+        else:
+            # TODO: less hacky way to do this?
+            optname = config._opt2dest.get("--keep-models", "--keep-models")  # noqa
+            config.option.__setattr__(optname, True)
 
     if config.getoption("--no-setup"):
         skipper = pytest.mark.skip(reason="--no-setup provided.")
