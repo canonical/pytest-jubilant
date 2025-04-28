@@ -5,10 +5,12 @@
 """Main plugin module."""
 import dataclasses
 import logging
+import secrets
 import shlex
 import subprocess
 from pathlib import Path
 from typing import Union, Optional, Dict
+from urllib import request
 
 import yaml
 import pytest
@@ -79,23 +81,53 @@ def pytest_collection_modifyitems(config:pytest.Config, items):
                 item.add_marker(skipper)
 
 
+@dataclasses.dataclass(frozen=True)
+class ModelConfiguration:
+    name: str
+    keep_models: bool
+
+
 @pytest.fixture(scope="module")
-def juju(request):
-    switch = request.config.getoption("--switch")
-    def _maybe_switch(juju):
-        if switch:
-            juju.cli("switch", model, include_model=False)
-        return juju
+def root_model_configuration(request) -> ModelConfiguration:
+    keep_models=request.config.getoption("--keep-models")
 
-    if model := request.config.getoption("--model"):
-        juju = jubilant.Juju(model=model)
-        yield _maybe_switch(juju)
-
+    if name := request.config.getoption("--model"):
+        keep_models=True
     else:
-        with jubilant.temp_model(
-            keep=request.config.getoption("--keep-models")
-        ) as juju:
-            yield _maybe_switch(juju)
+        name = f"{request.module.__name__.rpartition(".")[-1]}+{secrets.token_hex(4)}"
+
+    return ModelConfiguration(
+        name=name,
+        keep_models=keep_models
+    )
+
+
+def juju_client_with_model(model: str, keep_model=False, switch=False) -> jubilant.Juju:
+    juju = jubilant.Juju()
+
+    if not keep_model:
+        juju.add_model(model)
+    else:
+        juju.model = model
+
+    if switch:
+        juju.cli("switch", model, include_model=False)
+
+    return juju
+
+
+@pytest.fixture(scope="module")
+def juju(request, root_model_configuration):
+    juju = juju_client_with_model(
+        model=root_model_configuration.name,
+        keep_model=root_model_configuration.keep_models,
+        switch=request.config.getoption("--switch")
+    )
+    try:
+        yield juju
+    finally:
+        if not root_model_configuration.keep_models:
+            juju.destroy_model(root_model_configuration.name, destroy_storage=True, force=True)
 
 
 @dataclasses.dataclass
