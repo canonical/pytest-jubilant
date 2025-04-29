@@ -117,7 +117,11 @@ class TempModelFactory:
 @pytest.fixture(scope="module")
 def temp_model_factory(request):
     user_model = request.config.getoption("--model")
-    prefix = user_model or "test-" + secrets.token_hex(4)
+    if user_model:
+        prefix = user_model
+    else:
+        sanitized_module_name = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
+        prefix = f"{sanitized_module_name}-{secrets.token_hex(4)}"
     factory = TempModelFactory(prefix=prefix, check_models_unique=not user_model)
 
     yield factory
