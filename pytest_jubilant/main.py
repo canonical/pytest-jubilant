@@ -65,12 +65,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items):
         optname = config._opt2dest.get("--keep-models", "--keep-models")  # noqa
         config.option.__setattr__(optname, val)
 
-    if config.getoption("--model"):
-        if config.getoption("--keep-models"):
-            logging.warning("--model implies --keep-models")
-        else:
-            _set_keep_models(True)
-
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
