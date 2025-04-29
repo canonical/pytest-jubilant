@@ -60,6 +60,17 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items):
+    def _set_keep_models(val: bool = True):
+        # TODO: less hacky way to do this?
+        optname = config._opt2dest.get("--keep-models", "--keep-models")  # noqa
+        config.option.__setattr__(optname, val)
+
+    if config.getoption("--model"):
+        if config.getoption("--keep-models"):
+            logging.warning("--model implies --keep-models")
+        else:
+            _set_keep_models(True)
+
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
@@ -69,9 +80,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items):
         if config.getoption("--keep-models"):
             logging.warning("--no-teardown implies --keep-models")
         else:
-            # TODO: less hacky way to do this?
-            optname = config._opt2dest.get("--keep-models", "--keep-models")  # noqa
-            config.option.__setattr__(optname, True)
+            _set_keep_models(True)
 
     if config.getoption("--no-setup"):
         skipper = pytest.mark.skip(reason="--no-setup provided.")
@@ -100,9 +109,12 @@ class TempModelFactory:
         try:
             juju.add_model(model)
         except jubilant.CLIError as e:
+            # If --model is set (_check_models_unique is False), then the user wants collisions.
+            # If the name is randomly generated, the chance of colliding with another
+            # randomly generated model that wasn't torn down is tiny, but still present.
             if (
-                    "already exists on this k8s cluster" in e.args[1]
-                    and self._check_models_unique
+                "already exists on this k8s cluster" in e.args[1]
+                and self._check_models_unique
             ):
                 raise
 
@@ -122,12 +134,8 @@ def temp_model_factory(request):
 
     yield factory
 
-    # user-model and no-teardown both imply keep-models
-    if (
-            user_model or
-            request.config.getoption("--no-teardown") or
-            not request.config.getoption("--keep-models")
-    ):
+    # user-model implies keep-models
+    if not request.config.getoption("--keep-models"):
         # TODO: jubilant defaults to --force, but is that a good idea?
         factory.teardown(force=True)
 
