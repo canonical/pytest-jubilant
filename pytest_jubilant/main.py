@@ -5,14 +5,15 @@
 """Main plugin module."""
 import dataclasses
 import logging
+import secrets
 import shlex
 import subprocess
 from pathlib import Path
 from typing import Union, Optional, Dict
 
-import yaml
-import pytest
 import jubilant
+import pytest
+import yaml
 
 
 def pytest_addoption(parser):
@@ -45,7 +46,7 @@ def pytest_addoption(parser):
         "--switch",
         action="store_true",
         default=False,
-        help='Switch to the temporary model that is currently being worked on.',
+        help="Switch to the temporary model that is currently being worked on.",
     )
 
 
@@ -58,7 +59,7 @@ def pytest_configure(config):
     )
 
 
-def pytest_collection_modifyitems(config:pytest.Config, items):
+def pytest_collection_modifyitems(config: pytest.Config, items):
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
@@ -79,23 +80,59 @@ def pytest_collection_modifyitems(config:pytest.Config, items):
                 item.add_marker(skipper)
 
 
-@pytest.fixture(scope="module")
-def juju(request):
-    switch = request.config.getoption("--switch")
-    def _maybe_switch(juju):
-        if switch:
-            juju.cli("switch", model, include_model=False)
+class TempModelFactory:
+    """Manages temporary models for testing."""
+
+    def __init__(self, prefix: str, check_models_unique: bool = True):
+        self.prefix = prefix
+        self._models: Dict[str, jubilant.Juju] = {}
+        self._check_models_unique = check_models_unique
+
+    def get_juju(self, suffix: str) -> jubilant.Juju:
+        model = self.prefix + "-" + suffix
+        if model in self._models:
+            raise ValueError(
+                f"model {model} already registered on this temp_model factory. "
+                "choose a different prefix."
+            )
+
+        juju = jubilant.Juju(model=model)
+        try:
+            juju.add_model(model)
+        except jubilant.CLIError as e:
+            if (
+                "already exists on this k8s cluster" in e.args[1]
+                and self._check_models_unique
+            ):
+                raise
+
+        self._models[model] = juju
         return juju
 
-    if model := request.config.getoption("--model"):
-        juju = jubilant.Juju(model=model)
-        yield _maybe_switch(juju)
+    def teardown(self, force: bool = False):
+        for model, juju in self._models.items():
+            juju.destroy_model(model, destroy_storage=True, force=force)
 
-    else:
-        with jubilant.temp_model(
-            keep=request.config.getoption("--keep-models")
-        ) as juju:
-            yield _maybe_switch(juju)
+
+@pytest.fixture(scope="module")
+def temp_model_factory(request):
+    user_model = request.config.getoption("--model")
+    prefix = user_model or "test-" + secrets.token_hex(4)
+    factory = TempModelFactory(prefix=prefix, check_models_unique=not user_model)
+
+    yield factory
+
+    if not request.config.getoption("--keep-models"):
+        # TODO: jubilant defaults to --force, but is that a good idea?
+        factory.teardown(force=True)
+
+
+@pytest.fixture(scope="module")
+def juju(request, temp_model_factory):
+    juju = temp_model_factory.get_juju("root")
+    if request.config.getoption("--switch"):
+        juju.cli("switch", juju.model, include_model=False)
+    return juju
 
 
 @dataclasses.dataclass

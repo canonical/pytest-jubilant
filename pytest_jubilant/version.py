@@ -6,4 +6,4 @@
 Overridden by CI; do not modify.
 """
 
-__version__ = "<overridden by CI; do not modify>"
+__version__ = 0.1  # OVERRIDDEN BY CI, DO NOT MODIFY
