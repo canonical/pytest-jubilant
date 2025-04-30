@@ -8,39 +8,39 @@ on:
     branches:
       - main
 
-  jobs:
-    lint:
-      name: Linting
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            fetch-depth: 1
-        - name: Set up python
-          uses: actions/setup-python@v4
-          with:
-            python-version: 3.8
-        - name: Lint
-          run: |
-            sudo snap install astral-uv --classic
-            cd pytest-jubilant
-            uvx tox -e lint
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Lint
+        run: |
+          sudo snap install astral-uv --classic
+          cd pytest-jubilant
+          uvx tox -e lint
 
-    unittest:
-      name: Unit Tests
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            fetch-depth: 1
-        - name: Set up python
-          uses: actions/setup-python@v4
-          with:
-            python-version: 3.8
-        - name: Unit tests
-          run: |
-            sudo snap install astral-uv --classic
-            cd pytest-jubilant
-            uvx tox -e unit
+  unittest:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Unit tests
+        run: |
+          sudo snap install astral-uv --classic
+          cd pytest-jubilant
+          uvx tox -e unit
