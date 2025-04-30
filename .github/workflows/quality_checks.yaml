@@ -41,4 +41,4 @@ jobs:
       - name: Unit tests
         run: |
           sudo snap install astral-uv --classic
-          pytest -v --tb native ./tests --log-cli-level=DEBUG
+          uv run --with pytest pytest -v --tb native ./tests --log-cli-level=DEBUG
