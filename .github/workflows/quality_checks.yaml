@@ -24,7 +24,7 @@ jobs:
       - name: Lint
         run: |
           sudo snap install astral-uv --classic
-          uvx tox -e lint
+          uv run --active --with black black --check ./
 
   unittest:
     name: Unit Tests
@@ -41,4 +41,4 @@ jobs:
       - name: Unit tests
         run: |
           sudo snap install astral-uv --classic
-          uvx tox -e unit
+          pytest -v --tb native ./tests --log-cli-level=DEBUG
