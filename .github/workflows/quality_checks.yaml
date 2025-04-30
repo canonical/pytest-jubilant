@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install tox
-          sudo snap install astral-uv
+          sudo snap install astral-uv --classic
       - name: Run tests
         run: tox -vve lint
 
@@ -41,6 +41,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install tox
-          sudo snap install astral-uv
+          sudo snap install astral-uv --classic
       - name: Run tests
         run: tox -vve unit
