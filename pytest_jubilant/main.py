@@ -197,11 +197,17 @@ def pack_charm(root: Union[Path, str] = "./") -> _Result:
         if (meta_yaml := Path(root) / meta_name).exists():
             logging.debug(f"found metadata file: {meta_yaml}")
             meta = yaml.safe_load(meta_yaml.read_text())
-            if meta["resources"]:
-                resources = {
-                    resource: res_meta["upstream-source"]
-                    for resource, res_meta in meta["resources"].items()
-                }
+            if meta_resources := meta["resources"]:
+                try:
+                    resources = {
+                        resource: res_meta["upstream-source"]
+                        for resource, res_meta in meta_resources.items()
+                    }
+                except KeyError:
+                    logging.exception(
+                        "The `upstream-source` key wasn't found in the resource. If your charm follows a different convention of pointing at an OCI image, you need to pack it manually."
+                    )
+                    raise
             else:
                 resources = None
                 logging.info(
