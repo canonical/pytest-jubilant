@@ -197,7 +197,7 @@ def pack_charm(root: Union[Path, str] = "./") -> _Result:
         if (meta_yaml := Path(root) / meta_name).exists():
             logging.debug(f"found metadata file: {meta_yaml}")
             meta = yaml.safe_load(meta_yaml.read_text())
-            if meta_resources := meta["resources"]:
+            if meta_resources := meta.get("resources"):
                 try:
                     resources = {
                         resource: res_meta["upstream-source"]
