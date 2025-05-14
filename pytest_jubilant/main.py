@@ -181,7 +181,13 @@ class _Result:
 
 
 def pack_charm(root: Union[Path, str] = "./") -> _Result:
-    """Pack a local charm and return it along with its resources."""
+    """Deprecated."""
+    logging.warning("DEPRECATED. use `pack()` and `get_resources()` directly instead")
+    return _Result(pack(root), get_resources(root))
+
+
+def pack(root: Union[Path, str] = "./") -> Path:
+    """Pack a local charm and return it."""
     proc = subprocess.run(
         shlex.split(f"charmcraft pack -p {root}"),
         check=True,
@@ -192,7 +198,11 @@ def pack_charm(root: Union[Path, str] = "./") -> _Result:
     # Don't ask me why this goes to stderr.
     # FIXME: support multiple-charm outputs if there is more than one platform.
     charm = Path(proc.stderr.strip().splitlines()[-1].split()[-1])
+    return charm
 
+
+def get_resources(root: Union[Path, str] = "./") -> Optional[Dict[str, str]]:
+    """Obtain the charm resources from metadata.yaml's upstream-source fields."""
     for meta_name in ("metadata.yaml", "charmcraft.yaml"):
         if (meta_yaml := Path(root) / meta_name).exists():
             logging.debug(f"found metadata file: {meta_yaml}")
@@ -220,4 +230,4 @@ def pack_charm(root: Union[Path, str] = "./") -> _Result:
             f"metadata/charmcraft.yaml not found at {root}; unable to load resources"
         )
 
-    return _Result(charm=charm, resources=resources)
+    return resources
