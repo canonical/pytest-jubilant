@@ -4,6 +4,6 @@
 
 """Welcome to pytest-jubilant!"""
 
-from pytest_jubilant.main import pack_charm
+from pytest_jubilant.main import pack_charm, pack, get_resources
 
 __all__ = ["pack_charm", "pack", "get_resources"]

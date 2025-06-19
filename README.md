@@ -179,3 +179,17 @@ resources:
     description: OCI image for nginx-prometheus-exporter
     upstream-source: nginx/nginx-prometheus-exporter:1.1.0
 ```
+
+# DEVELOPERS
+
+To release:
+```bash
+# obtain the current latest version out there
+git tag | tail -n 1
+
+new_tag="v0.5"  # for example!
+git tag $new_tag -m "new fancy feature"
+git push origin head --tag
+```
+
+Once the PR is merged, the release CI will kick in and put the tag in `pytest_jubilant.version.py`
