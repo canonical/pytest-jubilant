@@ -116,7 +116,7 @@ Usage:
 
 
 ## `--dump-logs`
-Prior to tearing down all models owned by a temp_model_factory (i.e. prior to cleaning up a test module execution), dump the `juju debug-log --replay` for each model into a directory (default `"<CWD>/.pytest_jubilant_jdl"`). File naming scheme is:
+Prior to tearing down all models owned by a temp_model_factory (i.e. prior to cleaning up a test module execution), dump the `juju debug-log --replay` for each model into a directory (default `"<CWD>/.logs"`). File naming scheme is:
 
 `<module name>-<random bits>[-<suffix>]-jdl.txt`
 

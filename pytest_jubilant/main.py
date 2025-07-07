@@ -18,7 +18,7 @@ import pytest
 import yaml
 
 JDL_LOGFILE_EXTENSION = "-jdl.txt"
-DEFAULT_JDL_DUMP_PATH = "./.pytest_jubilant_jdl"
+DEFAULT_JDL_DUMP_PATH = "./.logs"
 
 
 def pytest_addoption(parser):
