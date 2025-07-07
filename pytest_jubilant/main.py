@@ -17,6 +17,9 @@ import jubilant
 import pytest
 import yaml
 
+JDL_LOGFILE_EXTENSION = "-jdl.txt"
+DEFAULT_JDL_DUMP_PATH = "./.pytest_jubilant_jdl"
+
 
 def pytest_addoption(parser):
     group = parser.getgroup("jubilant")
@@ -50,6 +53,13 @@ def pytest_addoption(parser):
         default=False,
         help="Switch to the temporary model that is currently being worked on.",
     )
+    group.addoption(
+        "--dump-logs",
+        action="store",
+        default=DEFAULT_JDL_DUMP_PATH,
+        help="Directory in which to dump any juju debug-log for any model prior to tearing it down. "
+        "Set to empty string to disable the behaviour.",
+    )
 
 
 _cli_mock: Optional[MagicMock] = None
@@ -63,11 +73,11 @@ def pytest_configure(config):
         "markers", "teardown: tests that tear down some parts of the environment."
     )
 
+    # horrible to do it this way, but it's easy
     if os.getenv("PYTESTING_PYTEST_JUBILANT"):
         mm = MagicMock()
-        mm.stdout = ""
-        mm.stderr = ""
-        ctx = patch("subprocess.run", mm)
+        mm.return_value = MagicMock(stdout="output", stderr="error")
+        ctx = patch("subprocess.run", new=mm)
         ctx.__enter__()
         global _cli_mock
         _cli_mock = mm
@@ -100,22 +110,28 @@ def pytest_collection_modifyitems(config: pytest.Config, items):
 class TempModelFactory:
     """Manages temporary models for testing."""
 
-    def __init__(self, prefix: str, check_models_unique: bool = True):
+    def __init__(
+        self,
+        prefix: str,
+        randbits: Optional[str] = None,
+        check_models_unique: bool = True,
+    ):
         self.prefix = prefix
+        self.randbits = randbits
         self._models: Dict[str, jubilant.Juju] = {}
         self._check_models_unique = check_models_unique
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
-        model = self.prefix + suffix
-        if model in self._models:
+        model_name = "-".join(filter(None, (self.prefix, self.randbits, suffix)))
+        if model_name in self._models:
             raise ValueError(
-                f"model {model} already registered on this temp_model factory. "
+                f"model {model_name} already registered on this temp_model factory. "
                 "choose a different prefix."
             )
 
-        juju = jubilant.Juju(model=model)
+        juju = jubilant.Juju(model=model_name)
         try:
-            juju.add_model(model)
+            juju.add_model(model_name)
         except jubilant.CLIError as e:
             # If --model is set (_check_models_unique is False), then the user wants collisions.
             # If the name is randomly generated, the chance of colliding with another
@@ -126,8 +142,16 @@ class TempModelFactory:
             ):
                 raise
 
-        self._models[model] = juju
+        self._models[model_name] = juju
         return juju
+
+    def dump_all_logs(self, path: Path = Path(DEFAULT_JDL_DUMP_PATH)):
+        path.mkdir(parents=True, exist_ok=True)
+        for model, juju in self._models.items():
+            jdl_path = path / (model + JDL_LOGFILE_EXTENSION)
+            jdl = juju.cli("debug-log", "--replay")
+            jdl_path.write_text(jdl)
+            logging.info(f"dropping jdl for model {model} to {jdl_path}")
 
     def teardown(self, force: bool = False):
         for model, juju in self._models.items():
@@ -144,19 +168,23 @@ def temp_model_factory(request):
     user_model = request.config.getoption("--model")
     if user_model:
         prefix = user_model
+        randbits = None
     else:
-        sanitized_module_name = (request.module.__name__.rpartition(".")[-1]).replace(
-            "_", "-"
-        )
+        prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
         randbits = (
             "testing"
             if os.getenv("PYTESTING_PYTEST_JUBILANT")
             else secrets.token_hex(4)
         )
-        prefix = f"{sanitized_module_name}-{randbits}"
-    factory = TempModelFactory(prefix=prefix, check_models_unique=not user_model)
+    factory = TempModelFactory(
+        prefix=prefix, randbits=randbits, check_models_unique=not user_model
+    )
 
     yield factory
+
+    # BEFORE tearing down the models, dump any and all juju debug-logs
+    if dump_logs := request.config.getoption("--dump-logs"):
+        factory.dump_all_logs(Path(dump_logs))
 
     if not request.config.getoption("--keep-models"):
         # TODO: jubilant defaults to --force, but is that a good idea?

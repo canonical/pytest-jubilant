@@ -65,19 +65,31 @@ This fixture can be used with the options described below:
 # Pytest CLI options
 
 ## `--model`
-Target a specific, existing model instead of provisioning a fresh, temporary one.
-Do note that this model won't be torn down at the end of the test run.
+Override the default model name generation (test module + random bits) and use a fixed model name instead.
+Do note that this model **will** be torn down at the end of the test run just like any other, so if you're targeting an existing model you care about, don't forget the `--no-teardown` flag!.
+
 Usage:
 
-    juju add-model mymodel
-    pytest ./tests/integration -k test_foo --model "mymodel"  
+    pytest ./tests/integration -k test_foo --model "model2" 
+    # runs the tests on a new 'model2' model and tears it down afterwards
+
+    juju add-model model1
+    pytest ./tests/integration -k test_foo --model "model1" --no-teardown 
+    # runs the tests on the existing 'model1' model, and keeps it
+    
 
 ## `--switch`
-Switch to the (randomly-named) model that is currently in scope, so you can keep an 
+Switch to the (randomly-named?) model that is currently in scope, so you can keep an 
 eye on the juju status as the tests progress. 
 (Won't work well if you're running multiple test modules in parallel.)
 
-    pytest ./tests/integration --switch
+Usage:
+
+    pytest ./tests/integration -k test-something --switch  
+    # will switch you to the test-something-09i123451 (random bits may differ) model as soon as it's created 
+
+    pytest ./tests/integration -k test-something --model mymodel --switch  
+    # will switch you to the `mymodel` model as soon as it's created 
 
 ## `--keep-models`
 Skip destroying the newly generated models when the tests are done. 
@@ -87,8 +99,10 @@ Usage:
 
 
 ## `--no-teardown`
-Skip all tests marked with `teardown`. Useful to inspect the state of a model after a (failed) test run.
+Skip all tests marked with `teardown` (**and skip destroying the models**! this flag implies the `--keep-models` one).
+Useful to inspect the state of a model after a (failed) test run.
 
+Usage:
     pytest ./tests/integration --no-teardown 
 
 
@@ -99,6 +113,25 @@ Usage:
 
     pytest ./tests/integration --no-teardown # make a note of the temporary model name
     pytest ./tests/integration --model <temporary model name> --no-setup 
+
+
+## `--dump-logs`
+Prior to tearing down all models owned by a temp_model_factory (i.e. prior to cleaning up a test module execution), dump the `juju debug-log --replay` for each model into a directory (default `"<CWD>/.pytest_jubilant_jdl"`). File naming scheme is:
+
+>  <module name>-<random bits>[-<suffix>]-jdl.txt
+
+Usage:
+
+    pytest ./tests/integration ./integration/test_ingress.py --dump-logs=./debug_logs
+    # once the tests are done, you'll find the logs in 
+    # ./debug_logs/test-ingress-c372ef49-jdl.txt (random bits may vary).
+
+    pytest ./tests/integration ./integration/test_ingress.py --model foo --dump-logs=./debug_logs
+    # once the tests are done, you'll find the logs in
+    # ./debug_logs/foo-jdl.txt
+
+    pytest ./tests/integration ./integration/test_ingress.py --dump-logs=""
+    # no logs will be saved
 
 
 # Markers
@@ -142,9 +175,28 @@ def test_destroy(juju):
 
 # Utilities
 
-## `pack`
+## `pack` and `get_resources`
 
-Wrapper around `charmcraft pack` to build a charm and return the packed charm path and its resources, ready to be passed to `juju.deploy`.
+Wrapper around `charmcraft pack` to build a charm and return the packed charm path, ready to be passed to `juju.deploy`.
+`get_resources` will parse a `charmcraft.yaml` file and return a mapping from resources to their `upstream-source` 
+field as is standard convention.
+
+```yaml
+# example /path/to/foo-charm-repo-root-dir/charmcraft.yaml
+
+# [snip] 
+resources:
+  nginx-image:
+    type: oci-image
+    description: OCI image for nginx
+    upstream-source: ubuntu/nginx:1.24-24.04_beta
+  nginx-prometheus-exporter-image:
+    type: oci-image
+    description: OCI image for nginx-prometheus-exporter
+    upstream-source: nginx/nginx-prometheus-exporter:1.1.0
+```
+
+Usage:
 
 ```python
 from pytest_jubilant import pack, get_resources
@@ -162,22 +214,6 @@ def test_build_deploy_charm(juju):
         resources=get_resources(charm_root),
         num_units=3,
     )
-```
-
-
-```yaml
-# example /path/to/foo-charm-repo-root-dir/charmcraft.yaml
-
-# [snip] 
-resources:
-  nginx-image:
-    type: oci-image
-    description: OCI image for nginx
-    upstream-source: ubuntu/nginx:1.24-24.04_beta
-  nginx-prometheus-exporter-image:
-    type: oci-image
-    description: OCI image for nginx-prometheus-exporter
-    upstream-source: nginx/nginx-prometheus-exporter:1.1.0
 ```
 
 # DEVELOPERS

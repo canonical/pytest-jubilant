@@ -14,8 +14,8 @@ def tempo(temp_model_factory):
 
 
 def test_multimodel(juju, istio, tempo, cli_mock):
-    assert istio.model == juju.model + "istio"
-    assert tempo.model == juju.model + "tempo"
+    assert istio.model == juju.model + "-istio"
+    assert tempo.model == juju.model + "-tempo"
 
     juju.deploy("something")
     istio.deploy("somethingelse")
@@ -30,14 +30,14 @@ def test_multimodel(juju, istio, tempo, cli_mock):
             input=None,
         ),
         call(
-            ["juju", "add-model", "--no-switch", "test-multimodel-testingistio"],
+            ["juju", "add-model", "--no-switch", "test-multimodel-testing-istio"],
             check=True,
             capture_output=True,
             encoding="utf-8",
             input=None,
         ),
         call(
-            ["juju", "add-model", "--no-switch", "test-multimodel-testingtempo"],
+            ["juju", "add-model", "--no-switch", "test-multimodel-testing-tempo"],
             check=True,
             capture_output=True,
             encoding="utf-8",
@@ -55,7 +55,7 @@ def test_multimodel(juju, istio, tempo, cli_mock):
                 "juju",
                 "deploy",
                 "--model",
-                "test-multimodel-testingistio",
+                "test-multimodel-testing-istio",
                 "somethingelse",
             ],
             check=True,
