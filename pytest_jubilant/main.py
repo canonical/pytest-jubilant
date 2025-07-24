@@ -210,8 +210,9 @@ class _Result:
 
 def pack_charm(root: Union[Path, str] = "./") -> _Result:
     """Deprecated."""
-    logging.warning("DEPRECATED. use `pack()` and `get_resources()` directly instead")
-    return _Result(pack(root), get_resources(root))
+    raise DeprecationWarning(
+        "DEPRECATED. use `pack()` and `get_resources()` directly instead"
+    )
 
 
 def _pack(root: Union[Path, str], platform: Optional[str] = None):
