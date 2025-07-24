@@ -216,6 +216,8 @@ def test_build_deploy_charm(juju):
     )
 ```
 
+If you have a multiplatform charm, you can use: `pack("./", platform="ubuntu@24.04")`.
+
 # DEVELOPERS
 
 To release:
