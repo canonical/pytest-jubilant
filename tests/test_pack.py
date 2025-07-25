@@ -34,3 +34,8 @@ def test_pack_multiplatform_unspecified():
             ValueError, match="This charm supports multiple platforms\..*"
         ):
             pack("./")
+
+
+def test_pack_subpath():
+    with mock_charmcraft_subprocess_call(["tempo.charm"]):
+        assert pack("/some/path") == Path("/some/path/tempo.charm")

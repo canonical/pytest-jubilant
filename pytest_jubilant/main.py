@@ -257,7 +257,7 @@ def pack(root: Union[Path, str] = "./", platform: Optional[str] = None) -> Path:
             "Pass a `platform` argument to control which charm you're getting instead."
         )
 
-    return Path(packed_charms[0])
+    return Path(root) / packed_charms[0]
 
 
 def get_resources(root: Union[Path, str] = "./") -> Optional[Dict[str, str]]:
