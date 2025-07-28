@@ -25,7 +25,7 @@ def test_pack_build_failure():
 
 def test_pack_single_platform():
     with mock_charmcraft_subprocess_call(["tempo.charm"]):
-        assert pack("./") == Path("tempo.charm")
+        assert pack("./") == Path("tempo.charm").resolve()
 
 
 def test_pack_multiplatform_unspecified():
