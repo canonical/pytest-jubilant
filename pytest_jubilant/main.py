@@ -9,6 +9,7 @@ import os
 import secrets
 import shlex
 import subprocess
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Union, Optional, Dict
 from unittest.mock import MagicMock, patch
@@ -52,6 +53,12 @@ def pytest_addoption(parser):
         action="store_true",
         default=False,
         help="Switch to the temporary model that is currently being worked on.",
+    )
+    group.addoption(
+        "--force",
+        action="store_true",
+        default=True, # this is jubilant's default!
+        help="Use force when tearing down temp models.",
     )
     group.addoption(
         "--dump-logs",
@@ -115,13 +122,15 @@ class TempModelFactory:
         prefix: str,
         randbits: Optional[str] = None,
         check_models_unique: bool = True,
+            switch:bool=False
     ):
         self.prefix = prefix
+        self.switch = switch
         self.randbits = randbits
         self._models: Dict[str, jubilant.Juju] = {}
         self._check_models_unique = check_models_unique
 
-    def get_juju(self, suffix: str) -> jubilant.Juju:
+    def get_temp_model(self, suffix: str) -> jubilant.Juju:
         model_name = "-".join(filter(None, (self.prefix, self.randbits, suffix)))
         if model_name in self._models:
             raise ValueError(
@@ -129,9 +138,11 @@ class TempModelFactory:
                 "choose a different prefix."
             )
 
-        juju = jubilant.Juju(model=model_name)
+        temp_model = jubilant.Juju(model=model_name)
         try:
-            juju.add_model(model_name)
+            temp_model.add_model(model_name)
+            if self.switch:
+                temp_model.cli("switch", model_name)
         except jubilant.CLIError as e:
             # If --model is set (_check_models_unique is False), then the user wants collisions.
             # If the name is randomly generated, the chance of colliding with another
@@ -142,64 +153,111 @@ class TempModelFactory:
             ):
                 raise
 
-        self._models[model_name] = juju
-        return juju
+        self._models[model_name] = temp_model
+        return temp_model
 
     def dump_all_logs(self, path: Path = Path(DEFAULT_JDL_DUMP_PATH)):
         path.mkdir(parents=True, exist_ok=True)
-        for model, juju in self._models.items():
+        for model, temp_model in self._models.items():
             jdl_path = path / (model + JDL_LOGFILE_EXTENSION)
-            jdl = juju.cli("debug-log", "--replay")
+            jdl = temp_model.cli("debug-log", "--replay")
             jdl_path.write_text(jdl)
             logging.info(f"dropping jdl for model {model} to {jdl_path}")
 
     def teardown(self, force: bool = False):
-        for model, juju in self._models.items():
-            juju.destroy_model(model, destroy_storage=True, force=force)
+        for model, temp_model in self._models.items():
+            temp_model.destroy_model(model, destroy_storage=True, force=force)
 
 
 @pytest.fixture(scope="module")
 def cli_mock(request):
+    if not os.getenv("PYTESTING_PYTEST_JUBILANT"):
+        raise RuntimeError("cannot access this fixture at this time")
     yield _cli_mock
 
 
-@pytest.fixture(scope="module")
-def temp_model_factory(request):
-    user_model = request.config.getoption("--model")
-    if user_model:
-        prefix = user_model
+@pytest.fixture(scope="module", autouse=True)
+def patch_jubilant(temp_model_factory, request):
+    import jubilant
+    @contextmanager
+    def _temp_model(keep: bool=None):
+        if keep is not None:
+            logging.warning("keep arg to temp_model ignored: this setting is managed by "
+                            "pytest-jubilant's --keep-models pytest config flag.")
+        suffix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
+        tm = temp_model_factory.get_temp_model(suffix)
+        yield tm
+
+    orig_add_model = jubilant.Juju.add_model
+    def _add_model(*args, **kwargs):
+        logging.warning("caution: models obtained directly via Juju.add_model won't be managed by pytest-jubilant.")
+        return orig_add_model(*args, **kwargs)
+
+    with patch.object(jubilant.Juju, "add_model", _add_model):
+        with patch.object(jubilant, "temp_model", _temp_model):
+            yield
+
+
+def _temp_model_generator(
+    model_name:Optional[str]=None,
+    dump_logs: Optional[Path]=None,
+    keep_models: bool=False,
+    switch: bool=False,
+    force: bool=False,
+    prefix:str="jubilant-"
+      ):
+    """Yield a temp model."""
+    if model_name:
+        prefix = model_name
         randbits = None
     else:
-        prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
         randbits = (
             "testing"
             if os.getenv("PYTESTING_PYTEST_JUBILANT")
             else secrets.token_hex(4)
         )
     factory = TempModelFactory(
-        prefix=prefix, randbits=randbits, check_models_unique=not user_model
+        prefix=prefix, randbits=randbits, check_models_unique=not model_name, switch=switch
     )
 
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    if dump_logs := request.config.getoption("--dump-logs"):
+    if dump_logs:
         factory.dump_all_logs(Path(dump_logs))
 
-    if not request.config.getoption("--keep-models"):
-        # TODO: jubilant defaults to --force, but is that a good idea?
-        factory.teardown(force=True)
+    if not keep_models:
+        factory.teardown(force=force)
 
     if _cli_mock:
         _cli_mock.reset_mock()
 
 
 @pytest.fixture(scope="module")
-def juju(request, temp_model_factory):
-    juju = temp_model_factory.get_juju("")
-    if request.config.getoption("--switch"):
-        juju.cli("switch", juju.model, include_model=False)
-    return juju
+def temp_model_factory(request):
+    yield from _temp_model_generator(
+        model_name = request.config.getoption("--model"),
+        dump_logs = Path(request.config.getoption("--dump-logs")),
+        prefix=(request.module.__name__.rpartition(".")[-1]).replace("_", "-"),
+        keep_models=request.config.getoption("--keep-models"),
+        force = request.config.getoption("--force"),
+        switch = request.config.getoption("--switch")
+    )
+
+
+@pytest.fixture(scope="module")
+def temp_model(request, temp_model_factory):
+    temp_model = temp_model_factory.get_temp_model("")
+    return temp_model
+
+
+@pytest.fixture(scope="module")
+def juju(temp_model):
+    logging.warning(
+        "the 'juju' fixture is deprecated and will be removed in v2.0. "
+        "Use `temp_model` going forward."
+        )
+    yield temp_model
 
 
 @dataclasses.dataclass

@@ -9,8 +9,8 @@ def test_jdl_dir(temp_model_factory):
         rmtree(DEFAULT_JDL_DUMP_PATH)
 
     # create two models
-    temp_model_factory.get_juju("foo")
-    temp_model_factory.get_juju("bar")
+    temp_model_factory.get_temp_model("foo")
+    temp_model_factory.get_temp_model("bar")
 
     # trigger an early log-dump for all models
     temp_model_factory.dump_all_logs()

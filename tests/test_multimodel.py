@@ -5,12 +5,12 @@ import pytest
 
 @pytest.fixture(scope="module")
 def istio(temp_model_factory):
-    yield temp_model_factory.get_juju(suffix="istio")
+    yield temp_model_factory.get_temp_model(suffix="istio")
 
 
 @pytest.fixture(scope="module")
 def tempo(temp_model_factory):
-    yield temp_model_factory.get_juju(suffix="tempo")
+    yield temp_model_factory.get_temp_model(suffix="tempo")
 
 
 def test_multimodel(juju, istio, tempo, cli_mock):

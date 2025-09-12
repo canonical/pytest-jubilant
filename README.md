@@ -32,7 +32,7 @@ from jubilant import Juju, all_active
 
 @pytest.fixture
 def istio(temp_model_factory):
-    yield temp_model_factory.get_juju(suffix="istio")
+    yield temp_model_factory.get_temp_model(suffix="istio")
     
     
 def test_cmr(juju: Juju, istio: Juju):

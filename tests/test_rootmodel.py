@@ -1,8 +1,8 @@
 from unittest.mock import call
 
 
-def test_rootmodel(juju, cli_mock):
-    juju.deploy("something")
+def test_rootmodel(temp_model, cli_mock):
+    temp_model.deploy("something")
 
     assert cli_mock.called
     assert cli_mock.call_args_list == [
