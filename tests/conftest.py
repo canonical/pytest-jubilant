@@ -1,12 +1,31 @@
-import os
+import unittest.mock
+
 import pytest
 
-# do this on module import; doing it in a fixture would be already too late, because the patch
-# needs to be applied before the tempmodelfactory is invoked.
-os.environ["PYTESTING_PYTEST_JUBILANT"] = "1"
+import pytest_jubilant.main
 
 
-@pytest.fixture(scope="session", autouse=True)
-def _cleanup_testing_envvar():
-    yield
-    del os.environ["PYTESTING_PYTEST_JUBILANT"]
+# Executed by pytest before any test runs -- so before any fixtures are requested.
+# We need to patch now, before the library's fixtures are invoked, as we're testing those fixtures.
+
+# 1) _TESTING_RANDBITS_OVERRIDE
+pytest_jubilant.main._TESTING_RANDBITS_OVERRIDE = "testing"
+
+
+# 2) mock subprocess.run globally for all tests
+def mock_cli():
+    mm = unittest.mock.MagicMock()
+    mm.return_value = unittest.mock.MagicMock(stdout="output", stderr="error")
+    return unittest.mock.patch("subprocess.run", new=mm)
+
+
+mock_cli().start()
+
+
+# 3) Re-mock at module scope so that we can inspect the calls in the tests.
+# Must be module rather than function scope as we're testing behaviour of module scoped fixtures.
+# Tests must request cli_mock_module first (leftmost) so it runs before the fixtures under test.
+@pytest.fixture(scope="module")
+def cli_mock_module():
+    with mock_cli() as mm:
+        yield mm

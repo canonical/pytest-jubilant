@@ -63,9 +63,6 @@ def pytest_addoption(parser):
     )
 
 
-_cli_mock: Optional[MagicMock] = None
-
-
 def pytest_configure(config):
     config.addinivalue_line(
         "markers", "setup: tests that setup some parts of the environment."
@@ -73,15 +70,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "teardown: tests that tear down some parts of the environment."
     )
-
-    # horrible to do it this way, but it's easy
-    if os.getenv("PYTESTING_PYTEST_JUBILANT"):
-        mm = MagicMock()
-        mm.return_value = MagicMock(stdout="output", stderr="error")
-        ctx = patch("subprocess.run", new=mm)
-        ctx.__enter__()
-        global _cli_mock
-        _cli_mock = mm
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items):
@@ -159,9 +147,7 @@ class TempModelFactory:
             juju.destroy_model(model, destroy_storage=True, force=force)
 
 
-@pytest.fixture(scope="module")
-def cli_mock(request):
-    yield _cli_mock
+_TESTING_RANDBITS_OVERRIDE: str | None = "testing"
 
 
 @pytest.fixture(scope="module")
@@ -172,11 +158,7 @@ def temp_model_factory(request):
         randbits = None
     else:
         prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
-        randbits = (
-            "testing"
-            if os.getenv("PYTESTING_PYTEST_JUBILANT")
-            else secrets.token_hex(4)
-        )
+        randbits = _TESTING_RANDBITS_OVERRIDE or secrets.token_hex(4)
     factory = TempModelFactory(
         prefix=prefix, randbits=randbits, check_models_unique=not user_model
     )
@@ -190,9 +172,6 @@ def temp_model_factory(request):
     if not request.config.getoption("--keep-models"):
         # TODO: jubilant defaults to --force, but is that a good idea?
         factory.teardown(force=True)
-
-    if _cli_mock:
-        _cli_mock.reset_mock()
 
 
 @pytest.fixture(scope="module")
