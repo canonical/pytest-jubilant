@@ -180,7 +180,8 @@ def temp_model_factory(request):
         factory.dump_all_logs(Path(dump_logs))
 
     if not (
-        request.config.getoption("--keep-models") or request.config.getoption("--no-teardown")
+        request.config.getoption("--keep-models")
+        or request.config.getoption("--no-teardown")
     ):
         # TODO: jubilant defaults to --force, but is that a good idea?
         factory.teardown(force=True)
