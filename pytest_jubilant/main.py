@@ -85,21 +85,13 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items):
-    def _set_keep_models(val: bool = True):
-        # TODO: less hacky way to do this?
-        optname = config._opt2dest.get("--keep-models", "--keep-models")  # noqa
-        config.option.__setattr__(optname, val)
-
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
             if "teardown" in item.keywords:
                 item.add_marker(skipper)
-
         if config.getoption("--keep-models"):
             logging.warning("--no-teardown implies --keep-models")
-        else:
-            _set_keep_models(True)
 
     if config.getoption("--no-setup"):
         skipper = pytest.mark.skip(reason="--no-setup provided.")
@@ -187,7 +179,9 @@ def temp_model_factory(request):
     if dump_logs := request.config.getoption("--dump-logs"):
         factory.dump_all_logs(Path(dump_logs))
 
-    if not request.config.getoption("--keep-models"):
+    if not (
+        request.config.getoption("--keep-models") or request.config.getoption("--no-teardown")
+    ):
         # TODO: jubilant defaults to --force, but is that a good idea?
         factory.teardown(force=True)
 
