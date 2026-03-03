@@ -3,6 +3,7 @@
 # See LICENSE file for licensing details.
 
 """Main plugin module."""
+
 import dataclasses
 import logging
 import os
