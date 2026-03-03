@@ -58,10 +58,8 @@ jobs:
           repository: canonical/backup-operators
 
       - name: Swap pytest-jubilant for this repo's version
-        env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sed -i "s%    pytest-jubilant%    git+https://$TOKEN@github.com/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%" tox.ini
+          sed -i "s%    pytest-jubilant%    git+https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%" tox.ini
 
       - run: |
           sudo apt install pipx
