@@ -67,12 +67,7 @@ jobs:
 
       - name: Swap pytest-jubilant for this repo's version
         run: |
-          sed -i 's%    pytest-jubilant%    git+${{ github.server_url }}/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%' tox.ini
+          sed -i 's%    pytest-jubilant%    git+${{ secrets.GITHUB_TOKEN }}${{ github.server_url }}/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%' tox.ini
 
       - name: Run integration tests
-        env:
-          # This will make authenticated git operations work in pip installs
-          GIT_ASKPASS: "echo"
-          GIT_USERNAME: "x-access-token"
-          GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: tox -e integration -- --keep-models --base=ubuntu@24.04
