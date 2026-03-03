@@ -67,7 +67,7 @@ jobs:
 
       - name: Swap pytest-jubilant for this repo's version
         run: |
-          sed -i 's%    pytest-jubilant%    git+${{ github.server_url }}/${{ github.repository }}.git@${{ github.sha }}%' tox.ini
+          sed -i 's%    pytest-jubilant%    git+${{ github.server_url }}/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%' tox.ini
 
       - name: Run integration tests
         run: tox -e integration -- --keep-models --base=ubuntu@24.04
