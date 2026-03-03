@@ -46,12 +46,20 @@ jobs:
   backup-operators-integration-tests:
     runs-on: ubuntu-latest
     steps:
+      # Slow, so we disable it for now while we're getting the other bit working
       # From operator-workflows
-      - name: Disable snap autorefresh
-        run: sudo snap refresh --hold=2h
-      - name: Wait for last autorefresh
-        run: sudo snap watch --last=auto-refresh?
-        timeout-minutes: 10
+      # - name: Disable snap autorefresh
+      #   run: sudo snap refresh --hold=2h
+      # - name: Wait for last autorefresh
+      #   run: sudo snap watch --last=auto-refresh?
+      #   timeout-minutes: 10
+      # - name: Setup operator environment (LXD + Juju)
+      #   uses: charmed-kubernetes/actions-operator@main
+      #   with:
+      #     provider: lxd
+      #     juju-channel: 3/stable
+      #     channel: latest/stable
+      #     bootstrap-constraints: "cores=2 mem=4G root-disk=10G"
 
       - uses: actions/checkout@v4
         with:
@@ -61,18 +69,10 @@ jobs:
         run: |
           sed -i "s%    pytest-jubilant%    git+https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%" tox.ini
 
+      # Installed by actions-operator, but while it's disabled we'll install manually
       - run: |
           sudo apt install pipx
           pipx install tox
 
       - name: Run integration tests
         run: tox -e integration -- --keep-models --base=ubuntu@24.04
-
-      - name: Setup operator environment (LXD + Juju)
-        uses: charmed-kubernetes/actions-operator@main
-        with:
-          provider: lxd
-          juju-channel: 3/stable
-          channel: latest/stable
-          bootstrap-constraints: "cores=2 mem=4G root-disk=10G"
-
