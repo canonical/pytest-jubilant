@@ -71,5 +71,8 @@ jobs:
 
       - name: Run integration tests
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This will make authenticated git operations work in pip installs
+          GIT_ASKPASS: "echo"
+          GIT_USERNAME: "x-access-token"
+          GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: tox -e integration -- --keep-models --base=ubuntu@24.04
