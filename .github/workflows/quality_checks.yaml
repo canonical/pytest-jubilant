@@ -47,12 +47,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # From operator-workflows
+      # Avoid autorefresh during testing
       - name: Disable snap autorefresh
         run: sudo snap refresh --hold=2h
       - name: Wait for last autorefresh
         run: sudo snap watch --last=auto-refresh?
         timeout-minutes: 10
-
+      # Free up disk space
+      - name: Remove Android SDK
+        run: sudo rm -rf /usr/local/lib/android
+      # Set up Juju, Charmcraft, LXD, tox
       - name: Setup operator environment (LXD + Juju)
         uses: charmed-kubernetes/actions-operator@main
         with:
@@ -61,16 +65,18 @@ jobs:
           channel: latest/stable
           bootstrap-constraints: "cores=2 mem=4G root-disk=10G"
 
-      - uses: actions/checkout@v4
-        with:
-          path: pytest-jubilant-repo
-
-      - uses: actions/checkout@v4
+      - name: Checkout charm repo to run integration tests from
+        uses: actions/checkout@v4
         with:
           repository: canonical/backup-operators
           path: charm-repo
 
-      - name: Swap pytest-jubilant for this repo's version
+      # Inject current pytest-jubilant branch as test dependency
+      - name: Checkout pytest-jubilant to inject
+        uses: actions/checkout@v4
+        with:
+          path: pytest-jubilant-repo
+      - name: Swap pytest-jubilant dependency for checkeded out version
         working-directory: charm-repo
         run: |
           sed -i "s%    pytest-jubilant%    file://${GITHUB_WORKSPACE}/pytest-jubilant-repo%" tox.ini
