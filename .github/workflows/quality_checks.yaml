@@ -63,6 +63,10 @@ jobs:
         run: |
           sed -i "s%    pytest-jubilant%    git+https://$TOKEN@github.com/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%" tox.ini
 
+      - run: |
+          sudo apt install pipx
+          pipx install tox
+
       - name: Run integration tests
         run: tox -e integration -- --keep-models --base=ubuntu@24.04
 
