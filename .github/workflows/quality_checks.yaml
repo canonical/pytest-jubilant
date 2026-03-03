@@ -63,11 +63,17 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          path: pytest-jubilant-repo
+
+      - uses: actions/checkout@v4
+        with:
           repository: canonical/backup-operators
+          path: charm-repo
 
       - name: Swap pytest-jubilant for this repo's version
+        working-directory: charm-repo
         run: |
-          sed -i "s%    pytest-jubilant%    git+https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.event.pull_request.head.repo.full_name }}.git@${{ github.event.pull_request.head.ref }}%" tox.ini
+          sed -i "s%    pytest-jubilant%    file://${GITHUB_WORKSPACE}/pytest-jubilant-repo%" tox.ini
 
       # Installed by actions-operator, but while it's disabled we'll install manually
       - run: |
@@ -75,4 +81,5 @@ jobs:
           pipx install tox
 
       - name: Run integration tests
+        working-directory: charm-repo
         run: tox -e integration -- --keep-models --base=ubuntu@24.04
