@@ -42,3 +42,32 @@ jobs:
         run: |
           sudo snap install astral-uv --classic
           uv run --with pytest pytest -v --tb native ./tests --log-cli-level=DEBUG
+
+  backup-operators-integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      # From operator-workflows
+      - name: Disable snap autorefresh
+        run: sudo snap refresh --hold=2h
+      - name: Wait for last autorefresh
+        run: sudo snap watch --last=auto-refresh?
+        timeout-minutes: 10
+
+      - name: Setup operator environment (LXD + Juju)
+        uses: charmed-kubernetes/actions-operator@main
+        with:
+          provider: lxd
+          juju-channel: 3/stable
+          channel: latest/stable
+          bootstrap-constraints: "cores=2 mem=4G root-disk=10G"
+
+      - uses: actions/checkout@v4
+        with:
+          repository: canonical/backup-operators
+
+      - name: Swap pytest-jubilant for this repo's version
+        run: |
+          sed -i 's%    pytest-jubilant%    git+https://${{ github.server_url }}/${{ github.repository }}.git@${{ github.sha }}%' tox.ini
+
+      - name: Run integration tests
+        run: tox -e integration -- --keep-models --base=ubuntu@24.04
