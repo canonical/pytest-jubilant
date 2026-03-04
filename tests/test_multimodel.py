@@ -13,15 +13,15 @@ def tempo(temp_model_factory):
     yield temp_model_factory.get_juju(suffix="tempo")
 
 
-def test_multimodel(cli_mock_module, juju, istio, tempo):
+def test_multimodel(cli_mock, juju, istio, tempo):
     assert istio.model == juju.model + "-istio"
     assert tempo.model == juju.model + "-tempo"
 
     juju.deploy("something")
     istio.deploy("somethingelse")
 
-    assert cli_mock_module.called
-    assert cli_mock_module.call_args_list == [
+    assert cli_mock.called
+    assert cli_mock.call_args_list == [
         call(
             ["juju", "add-model", "--no-switch", "test-multimodel-testing"],
             check=True,

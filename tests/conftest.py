@@ -24,8 +24,8 @@ mock_cli().start()
 
 # 3) Re-mock at module scope so that we can inspect the calls in the tests.
 # Must be module rather than function scope as we're testing behaviour of module scoped fixtures.
-# Tests must request cli_mock_module first (leftmost) so it runs before the fixtures under test.
+# Tests must request cli_mock first (leftmost) so it runs before the fixtures under test.
 @pytest.fixture(scope="module")
-def cli_mock_module():
+def cli_mock():
     with mock_cli() as mm:
         yield mm
