@@ -147,7 +147,7 @@ class TempModelFactory:
             juju.destroy_model(model, destroy_storage=True, force=force)
 
 
-_TESTING_RANDBITS_OVERRIDE: str | None = "testing"
+_TESTING_RANDBITS_OVERRIDE: str | None = None
 
 
 @pytest.fixture(scope="module")
