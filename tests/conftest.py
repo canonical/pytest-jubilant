@@ -19,7 +19,14 @@ def _patch_subprocess_run():
     return unittest.mock.patch("subprocess.run", new=mm)
 
 
-_patch_subprocess_run().start()
+_GLOBAL_SUBPROCESS_PATCHER = _patch_subprocess_run()
+_GLOBAL_SUBPROCESS_PATCHER.start()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _cleanup_global_cli_mock():
+    yield
+    _GLOBAL_SUBPROCESS_PATCHER.stop()
 
 
 # 3) Re-mock at module scope so that we can inspect the calls in the tests.
