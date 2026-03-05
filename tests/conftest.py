@@ -5,16 +5,16 @@ import pytest
 import pytest_jubilant.main
 
 
-def _patch_subprocess_run():
-    mm = unittest.mock.MagicMock()
-    mm.return_value = unittest.mock.MagicMock(stdout="output", stderr="error")
-    return unittest.mock.patch("subprocess.run", new=mm)
+@pytest.fixture(scope="session", autouse=True)
+def _global_random_bits_mock():
+    """Mock out secrets.token_hex so we can have a predictable model name."""
+    with unittest.mock.patch("secrets.token_hex", new=lambda _: "testing"):
+        yield
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _global_cli_mock():
     """Mock out subprocess.run for all tests."""
-    pytest_jubilant.main._PYTESTING_RANDBITS_OVERRIDE = "testing"
     with _patch_subprocess_run():
         yield
 
@@ -28,3 +28,9 @@ def cli_mock():
     """
     with _patch_subprocess_run() as mm:
         yield mm
+
+
+def _patch_subprocess_run():
+    mm = unittest.mock.MagicMock()
+    mm.return_value = unittest.mock.MagicMock(stdout="output", stderr="error")
+    return unittest.mock.patch("subprocess.run", new=mm)
