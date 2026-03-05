@@ -8,8 +8,8 @@ import pytest_jubilant.main
 # Executed by pytest before any test runs -- so before any fixtures are requested.
 # We need to patch now, before the library's fixtures are invoked, as we're testing those fixtures.
 
-# 1) _TESTING_RANDBITS_OVERRIDE
-pytest_jubilant.main._TESTING_RANDBITS_OVERRIDE = "testing"
+# 1) _PYTESTING_RANDBITS_OVERRIDE
+pytest_jubilant.main._PYTESTING_RANDBITS_OVERRIDE = "testing"
 
 
 # 2) mock subprocess.run globally for all tests

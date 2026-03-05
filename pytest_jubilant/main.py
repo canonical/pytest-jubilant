@@ -147,7 +147,7 @@ class TempModelFactory:
             juju.destroy_model(model, destroy_storage=True, force=force)
 
 
-_TESTING_RANDBITS_OVERRIDE: str | None = None
+_PYTESTING_RANDBITS_OVERRIDE: str | None = None
 
 
 @pytest.fixture(scope="module")
@@ -158,7 +158,7 @@ def temp_model_factory(request):
         randbits = None
     else:
         prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
-        randbits = _TESTING_RANDBITS_OVERRIDE or secrets.token_hex(4)
+        randbits = _PYTESTING_RANDBITS_OVERRIDE or secrets.token_hex(4)
     factory = TempModelFactory(
         prefix=prefix, randbits=randbits, check_models_unique=not user_model
     )
