@@ -4,7 +4,6 @@ import pytest
 
 import pytest_jubilant.main
 
-
 # Executed by pytest before any test runs -- so before any fixtures are requested.
 # We need to patch now, before the library's fixtures are invoked, as we're testing those fixtures.
 
