@@ -3,6 +3,7 @@
 # See LICENSE file for licensing details.
 
 """Main plugin module."""
+from __future__ import annotations
 
 import dataclasses
 import logging
@@ -10,7 +11,6 @@ import secrets
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional, Union
 
 import jubilant
 import pytest
@@ -98,12 +98,12 @@ class TempModelFactory:
     def __init__(
         self,
         prefix: str,
-        randbits: Optional[str] = None,
+        randbits: str | None = None,
         check_models_unique: bool = True,
     ):
         self.prefix = prefix
         self.randbits = randbits
-        self._models: Dict[str, jubilant.Juju] = {}
+        self._models: dict[str, jubilant.Juju] = {}
         self._check_models_unique = check_models_unique
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
@@ -175,12 +175,12 @@ def juju(request, temp_model_factory):
 @dataclasses.dataclass
 class _Result:
     charm: Path
-    resources: Optional[Dict[str, str]]
+    resources: dict[str, str] | None
 
 
-def _pack(root: Union[Path, str], platform: Optional[str] = None):
-    _platform = f" --platform {platform}" if platform else ""
-    cmd = f"charmcraft pack -p {root}{_platform}"
+def _pack(root: Path | str, platform: str | None = None):
+    platform_ = f" --platform {platform}" if platform else ""
+    cmd = f"charmcraft pack -p {root}{platform_}"
     proc = subprocess.run(
         shlex.split(cmd),
         check=True,
@@ -197,10 +197,7 @@ def _pack(root: Union[Path, str], platform: Optional[str] = None):
     output = proc.stderr
 
     # we parse it and collect all the built charms.
-    packed_charms = []
-    for line in output.strip().splitlines():
-        if line.startswith("Packed"):
-            packed_charms.append(line.split()[1])
+    packed_charms = [line.split()[1] for line in output.strip().splitlines() if line.startswith("Packed")]
 
     if not packed_charms:
         raise ValueError(
@@ -210,7 +207,7 @@ def _pack(root: Union[Path, str], platform: Optional[str] = None):
     return packed_charms
 
 
-def pack(root: Union[Path, str] = "./", platform: Optional[str] = None) -> Path:
+def pack(root: Path | str = "./", platform: str | None = None) -> Path:
     """Pack a local charm and return it."""
     packed_charms = _pack(root, platform)
 
@@ -223,7 +220,7 @@ def pack(root: Union[Path, str] = "./", platform: Optional[str] = None) -> Path:
     return Path(packed_charms[0]).resolve()
 
 
-def get_resources(root: Union[Path, str] = "./") -> Optional[Dict[str, str]]:
+def get_resources(root: Path | str = "./") -> dict[str, str] | None:
     """Obtain the charm resources from metadata.yaml's upstream-source fields."""
     for meta_name in ("metadata.yaml", "charmcraft.yaml"):
         if (meta_yaml := Path(root) / meta_name).exists():
