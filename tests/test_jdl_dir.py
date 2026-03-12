@@ -1,7 +1,7 @@
 from pathlib import Path
 from shutil import rmtree
 
-from pytest_jubilant.main import DEFAULT_JDL_DUMP_PATH
+from pytest_jubilant._main import DEFAULT_JDL_DUMP_PATH
 
 
 def test_jdl_dir(temp_model_factory):
