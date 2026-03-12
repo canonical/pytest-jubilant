@@ -82,7 +82,7 @@ ignore = [
 "pytest_jubilant/_main.py" = [
     "E501",  # FIXME: line too long
     "LOG015",  # FIXME: don't log from the root logger
-    "RUF003",  # ambiguous character '❯'
+    "RUF003",  # FIXME: ambiguous character '❯'
     "S404",  # subprocess module, core functionality for this lib
     "S603",  # FIXME: construct charmcraft run command more statically
 ]
