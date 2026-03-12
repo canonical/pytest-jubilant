@@ -13,7 +13,7 @@ def test_jdl_dir(temp_model_factory):
     temp_model_factory.get_juju("bar")
 
     # trigger an early log-dump for all models
-    temp_model_factory.dump_all_logs()
+    temp_model_factory._dump_all_logs()
 
     for model in ("foo", "bar"):
         expected_path = Path(DEFAULT_JDL_DUMP_PATH) / f"test-jdl-dir-testing-{model}-jdl.txt"

@@ -128,7 +128,7 @@ class TempModelFactory:
         self._models[model_name] = juju
         return juju
 
-    def dump_all_logs(self, path: Path = Path(DEFAULT_JDL_DUMP_PATH)):
+    def _dump_all_logs(self, path: Path = Path(DEFAULT_JDL_DUMP_PATH)):
         path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
             jdl_path = path / (model + JDL_LOGFILE_EXTENSION)
@@ -158,7 +158,7 @@ def temp_model_factory(request):
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
     if dump_logs := request.config.getoption("--dump-logs"):
-        factory.dump_all_logs(Path(dump_logs))
+        factory._dump_all_logs(Path(dump_logs))
 
     if not request.config.getoption("--keep-models"):
         # TODO: jubilant defaults to --force, but is that a good idea?
