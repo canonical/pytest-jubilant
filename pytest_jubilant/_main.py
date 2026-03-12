@@ -3,6 +3,7 @@
 # See LICENSE file for licensing details.
 
 """Main plugin module."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -197,7 +198,9 @@ def _pack(root: Path | str, platform: str | None = None):
     output = proc.stderr
 
     # we parse it and collect all the built charms.
-    packed_charms = [line.split()[1] for line in output.strip().splitlines() if line.startswith("Packed")]
+    packed_charms = [
+        line.split()[1] for line in output.strip().splitlines() if line.startswith("Packed")
+    ]
 
     if not packed_charms:
         raise ValueError(
