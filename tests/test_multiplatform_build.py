@@ -1,6 +1,6 @@
 import contextlib
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -19,7 +19,7 @@ def mock_charmcraft_subprocess_call(packed_charms):
 
 def test_pack_build_failure():
     with mock_charmcraft_subprocess_call([]):
-        with pytest.raises(ValueError, match="unable to get packed charm\(s\).*"):
+        with pytest.raises(ValueError, match=r"unable to get packed charm\(s\).*"):
             pack("./")
 
 
@@ -30,7 +30,5 @@ def test_pack_single_platform():
 
 def test_pack_multiplatform_unspecified():
     with mock_charmcraft_subprocess_call(["tempo-amd64.charm", "tempo-arm64.charm"]):
-        with pytest.raises(
-            ValueError, match="This charm supports multiple platforms\..*"
-        ):
+        with pytest.raises(ValueError, match=r"This charm supports multiple platforms\..*"):
             pack("./")

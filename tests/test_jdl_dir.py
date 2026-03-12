@@ -16,8 +16,6 @@ def test_jdl_dir(temp_model_factory):
     temp_model_factory.dump_all_logs()
 
     for model in ("foo", "bar"):
-        expected_path = (
-            Path(DEFAULT_JDL_DUMP_PATH) / f"test-jdl-dir-testing-{model}-jdl.txt"
-        )
+        expected_path = Path(DEFAULT_JDL_DUMP_PATH) / f"test-jdl-dir-testing-{model}-jdl.txt"
         assert expected_path.exists(), f"{expected_path.absolute()} not found"
         assert expected_path.read_text() == "output"

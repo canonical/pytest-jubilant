@@ -13,12 +13,10 @@ Usage:
 ```python
 from jubilant import Juju, all_active
 
+
 def test_deploy(juju: Juju):
     juju.deploy("./foo.charm", "foo")
-    juju.wait(
-        lambda status: all_active(status, "foo"),
-        timeout=1000
-    )
+    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
 ```
 
 ## `temp_model_factory`
@@ -30,25 +28,20 @@ Especially useful if you have test cases that require multiple models.
 import pytest
 from jubilant import Juju, all_active
 
+
 @pytest.fixture
 def istio(temp_model_factory):
     yield temp_model_factory.get_juju(suffix="istio")
-    
-    
+
+
 def test_cmr(juju: Juju, istio: Juju):
     istio.deploy("istio-k8s", "istio")
-    istio.wait(
-        lambda status: all_active(status, "istio"),
-        timeout=1000
-    )
+    istio.wait(lambda status: all_active(status, "istio"), timeout=1000)
 
     juju.deploy("./foo.charm", "foo")
-    juju.wait(
-        lambda status: all_active(status, "foo"),
-        timeout=1000
-    )
+    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
 
-    juju.cli("offer", "foo:bar") 
+    juju.cli("offer", "foo:bar")
     istio.cli("consume", f"{juju.model}:foo")
     istio.cli("relate", "istio", "foo:bar")
 ```
@@ -145,10 +138,12 @@ Usage:
 ```python
 import pytest
 
+
 @pytest.mark.setup
 def test_deploy(juju):
     juju.deploy("A")
     juju.deploy("B")
+
 
 @pytest.mark.setup
 def test_relate(juju):
@@ -163,9 +158,11 @@ Usage:
 ```python
 import pytest
 
+
 @pytest.mark.teardown
 def test_disintegrate(juju):
     juju.remove_relation("A", "B")
+
 
 @pytest.mark.teardown
 def test_destroy(juju):
@@ -209,7 +206,7 @@ def test_build_deploy_charm(juju):
     juju.deploy(
         pack(charm_root),
         "foo",
-        # the resources can only be inferred from the charm's metadata/charmcraft yaml 
+        # the resources can only be inferred from the charm's metadata/charmcraft yaml
         # if you use the `upstream-source` convention
         resources=get_resources(charm_root),
         num_units=3,

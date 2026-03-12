@@ -6,13 +6,11 @@
 
 import dataclasses
 import logging
-import os
 import secrets
 import shlex
 import subprocess
 from pathlib import Path
-from typing import Union, Optional, Dict
-from unittest.mock import MagicMock, patch
+from typing import Dict, Optional, Union
 
 import jubilant
 import pytest
@@ -64,9 +62,7 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    config.addinivalue_line(
-        "markers", "setup: tests that setup some parts of the environment."
-    )
+    config.addinivalue_line("markers", "setup: tests that setup some parts of the environment.")
     config.addinivalue_line(
         "markers", "teardown: tests that tear down some parts of the environment."
     )
@@ -75,7 +71,7 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(config: pytest.Config, items):
     def _set_keep_models(val: bool = True):
         # TODO: less hacky way to do this?
-        optname = config._opt2dest.get("--keep-models", "--keep-models")  # noqa
+        optname = config._opt2dest.get("--keep-models", "--keep-models")
         config.option.__setattr__(optname, val)
 
     if config.getoption("--no-teardown"):
@@ -125,10 +121,7 @@ class TempModelFactory:
             # If --model is set (_check_models_unique is False), then the user wants collisions.
             # If the name is randomly generated, the chance of colliding with another
             # randomly generated model that wasn't torn down is tiny, but still present.
-            if (
-                "already exists on this k8s cluster" in e.args[1]
-                and self._check_models_unique
-            ):
+            if "already exists on this k8s cluster" in e.args[1] and self._check_models_unique:
                 raise
 
         self._models[model_name] = juju
@@ -249,14 +242,10 @@ def get_resources(root: Union[Path, str] = "./") -> Optional[Dict[str, str]]:
                     raise
             else:
                 resources = None
-                logging.info(
-                    f"resources not found in {meta_name}; proceeding without resources"
-                )
+                logging.info(f"resources not found in {meta_name}; proceeding without resources")
             break
     else:
         resources = None
-        logging.error(
-            f"metadata/charmcraft.yaml not found at {root}; unable to load resources"
-        )
+        logging.error(f"metadata/charmcraft.yaml not found at {root}; unable to load resources")
 
     return resources

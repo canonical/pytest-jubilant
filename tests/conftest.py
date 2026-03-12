@@ -2,8 +2,6 @@ import unittest.mock
 
 import pytest
 
-import pytest_jubilant._main
-
 
 @pytest.fixture(scope="session", autouse=True)
 def _global_random_bits_mock():
