@@ -41,7 +41,6 @@ pytest-jubilant = "pytest_jubilant._main"
 
 [tool.ruff]
 line-length = 99
-exclude = ["examples"]
 target-version = "py38"
 
 [tool.ruff.lint]
