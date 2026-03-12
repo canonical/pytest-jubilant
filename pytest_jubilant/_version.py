@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Version meta.
-Overridden by CI; do not modify.
+"""Version metadata.
+
+This entire file is overwritten in CI when publishing.
 """
 
 __version__ = 0.1  # OVERRIDDEN BY CI, DO NOT MODIFY

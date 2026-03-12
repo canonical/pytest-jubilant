@@ -227,4 +227,4 @@ git tag $new_tag -m "new fancy feature"
 git push origin head --tag
 ```
 
-Once the PR is merged, the release CI will kick in and put the tag in `pytest_jubilant.version.py`
+Once the PR is merged, the release CI will kick in and put the tag in `pytest_jubilant/_version.py`

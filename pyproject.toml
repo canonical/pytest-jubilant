@@ -30,7 +30,7 @@ unit = [
 ]
 
 [tool.setuptools.dynamic]
-version = {attr = "pytest_jubilant.version.__version__"}
+version = {attr = "pytest_jubilant._version.__version__"}
 
 [project.urls]
 Homepage = "https://github.com/canonical/pytest-jubilant"
@@ -85,7 +85,4 @@ ignore = [
     "RUF003",  # FIXME: ambiguous character '❯'
     "S404",  # subprocess module, core functionality for this lib
     "S603",  # FIXME: construct charmcraft run command more statically
-]
-"pytest_jubilant/version.py" = [
-    "D205",  # FIXME: module docstring formatting
 ]
