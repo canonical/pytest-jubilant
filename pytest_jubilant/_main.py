@@ -136,7 +136,7 @@ class TempModelFactory:
             jdl_path.write_text(jdl)
             logging.info(f"dropping jdl for model {model} to {jdl_path}")
 
-    def teardown(self, force: bool = False):
+    def _teardown(self, force: bool = False):
         for model, juju in self._models.items():
             juju.destroy_model(model, destroy_storage=True, force=force)
 
@@ -162,7 +162,7 @@ def temp_model_factory(request):
 
     if not request.config.getoption("--keep-models"):
         # TODO: jubilant defaults to --force, but is that a good idea?
-        factory.teardown(force=True)
+        factory._teardown(force=True)
 
 
 @pytest.fixture(scope="module")
