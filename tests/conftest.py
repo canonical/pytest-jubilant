@@ -2,7 +2,7 @@ import unittest.mock
 
 import pytest
 
-import pytest_jubilant.main
+import pytest_jubilant._main
 
 
 @pytest.fixture(scope="session", autouse=True)
