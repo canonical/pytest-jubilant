@@ -122,7 +122,10 @@ class TempModelFactory:
             # If --model is set (_check_models_unique is False), then the user wants collisions.
             # If the name is randomly generated, the chance of colliding with another
             # randomly generated model that wasn't torn down is tiny, but still present.
-            if "already exists on this k8s cluster" in e.args[1] and self._check_models_unique:
+            if (
+                "already exists on this k8s cluster" in (e.stderr or "")
+                and self._check_models_unique
+            ):
                 raise
 
         self._models[model_name] = juju
