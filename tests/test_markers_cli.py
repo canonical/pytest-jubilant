@@ -5,7 +5,7 @@ import pytest
 pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
-TEST_MARKERS = """
+TEST_SAMPLE = """
 from pathlib import Path
 from typing import Any
 
@@ -56,7 +56,7 @@ def test_teardown(temp_model_factory: pytest_jubilant.TempModelFactory):
 def test_default(pytester: pytest.Pytester, tmp_path: Path):
     """By default, all tests are run, and all models are torn down."""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest()
 
@@ -76,7 +76,7 @@ def test_default(pytester: pytest.Pytester, tmp_path: Path):
 def test_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     """``--no-setup`` means tests marked ``setup`` aren't run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--no-setup")
 
@@ -94,7 +94,7 @@ def test_no_setup(pytester: pytest.Pytester, tmp_path: Path):
 def test_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``--no-teardown`` means tests marked ``teardown`` aren't run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--no-teardown")
 
@@ -109,7 +109,7 @@ def test_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
 def test_no_setup_and_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``--no-setup`` and ``--no-teardown`` both being passed means neither are run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
@@ -121,7 +121,7 @@ def test_no_setup_and_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_setup(pytester: pytest.Pytester, tmp_path: Path):
     """``-m setup`` only runs tests marked ``setup``"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "setup")
 
@@ -133,7 +133,7 @@ def test_m_setup(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``-m setup`` + ``--no-teardown`` means only ``setup`` tests run + models aren't torn down"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "setup", "--no-teardown")
 
@@ -145,7 +145,7 @@ def test_m_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     """``-m setup`` and ``--no-setup`` mean no tests are run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "setup", "--no-setup")
 
@@ -157,7 +157,7 @@ def test_m_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``-m teardown`` only runs tests marked ``teardown``"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "teardown")
 
@@ -187,7 +187,7 @@ def pytest_addoption(parser):
     parser.addoption("--keep-models", action="store_true", default=False)
 """.strip()
     pytester.makeconftest(keep_models_conftest)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_sample=TEST_SAMPLE.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--keep-models")
 
