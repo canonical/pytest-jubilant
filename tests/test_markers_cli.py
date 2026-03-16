@@ -53,31 +53,6 @@ def test_teardown(temp_model_factory: pytest_jubilant.TempModelFactory):
 """.strip()
 
 
-TEST_KEEP_MODELS = """
-from pathlib import Path
-from typing import Any
-
-import pytest
-import pytest_jubilant
-import jubilant
-
-
-def _mock_destroy(self, model, *args: Any, **kwargs: Any):
-    Path("{tmp_file}").write_text(model)
-
-
-@pytest.fixture(scope="module", autouse=True)
-def _patch_destroy_model():
-    with pytest.MonkeyPatch.context() as monkeypatch:
-        monkeypatch.setattr(jubilant.Juju, "destroy_model", _mock_destroy)
-        yield
-
-
-def test_keep_models_option_ignored(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("foo")
-""".strip()
-
-
 def test_no_teardown_skips_teardown_markers(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
@@ -223,14 +198,19 @@ def test_keep_models_option_is_ignored(pytester: pytest.Pytester, tmp_path: Path
 def pytest_addoption(parser):
     parser.addoption("--keep-models", action="store_true", default=False)
 """.strip()
-    destroy_log = tmp_path / "destroyed.txt"
-    test_sample = TEST_KEEP_MODELS.format(tmp_file=destroy_log.as_posix())
-
     pytester.makeconftest(keep_models_conftest)
-    pytester.makepyfile(test_sample=test_sample)
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
 
     result = pytester.runpytest("--keep-models")
 
-    result.assert_outcomes(passed=1)
-    assert destroy_log.exists()
-    assert destroy_log.read_text() == "test-sample-testing-foo"
+    result.assert_outcomes(passed=3)
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-setup",
+        "test-sample-testing-regular",
+        "test-sample-testing-teardown",
+    ]
+    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
+        "test-sample-testing-setup",
+        "test-sample-testing-regular",
+        "test-sample-testing-teardown",
+    ]
