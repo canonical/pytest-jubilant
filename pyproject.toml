@@ -28,6 +28,10 @@ unit = [
     "coverage[toml]",
     "pytest",
 ]
+integration = [
+    "coverage[toml]",
+    "pytest",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "pytest_jubilant._version.__version__"}

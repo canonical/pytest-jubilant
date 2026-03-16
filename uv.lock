@@ -440,6 +440,12 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+integration = [
+    { name = "coverage", version = "7.6.1", source = { registry = "https://pypi.org/simple" }, extra = ["toml"], marker = "python_full_version < '3.9'" },
+    { name = "coverage", version = "7.10.7", source = { registry = "https://pypi.org/simple" }, extra = ["toml"], marker = "python_full_version == '3.9.*'" },
+    { name = "coverage", version = "7.13.4", source = { registry = "https://pypi.org/simple" }, extra = ["toml"], marker = "python_full_version >= '3.10'" },
+    { name = "pytest" },
+]
 lint = [
     { name = "pyright" },
     { name = "ruff" },
@@ -458,6 +464,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+integration = [
+    { name = "coverage", extras = ["toml"] },
+    { name = "pytest" },
+]
 lint = [
     { name = "pyright" },
     { name = "ruff" },
