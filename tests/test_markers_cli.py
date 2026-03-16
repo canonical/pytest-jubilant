@@ -5,7 +5,6 @@ import pytest
 pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
-
 TEST_MARKERS = """
 from pathlib import Path
 from typing import Any
@@ -94,9 +93,7 @@ def test_no_setup_and_no_teardown_skips_both_markers(
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
     result.assert_outcomes(passed=1, skipped=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == [
-        "test-sample-testing-regular"
-    ]
+    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-regular"]
     assert not (tmp_path / "destroyed.txt").exists()
 
 
@@ -107,12 +104,8 @@ def test_marker_selection_setup_only(pytester: pytest.Pytester, tmp_path: Path):
     result = pytester.runpytest("-m", "setup")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == [
-        "test-sample-testing-setup"
-    ]
-    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
-        "test-sample-testing-setup"
-    ]
+    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-setup"]
+    assert (tmp_path / "destroyed.txt").read_text().splitlines() == ["test-sample-testing-setup"]
 
 
 def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Path):
@@ -122,9 +115,7 @@ def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Pat
     result = pytester.runpytest("-m", "teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == [
-        "test-sample-testing-teardown"
-    ]
+    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-teardown"]
     assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
         "test-sample-testing-teardown"
     ]
@@ -148,9 +139,7 @@ def test_marker_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path
     result = pytester.runpytest("-m", "setup", "--no-teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == [
-        "test-sample-testing-setup"
-    ]
+    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-setup"]
     assert not (tmp_path / "destroyed.txt").exists()
 
 
@@ -172,9 +161,7 @@ def test_marker_teardown_with_no_setup(pytester: pytest.Pytester, tmp_path: Path
     result = pytester.runpytest("-m", "teardown", "--no-setup")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == [
-        "test-sample-testing-teardown"
-    ]
+    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-teardown"]
     assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
         "test-sample-testing-teardown"
     ]
