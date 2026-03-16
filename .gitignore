@@ -5,3 +5,5 @@ dist
 .coverage
 .logs/
 /tests/.logs/
+.tmp/
+*.charm
