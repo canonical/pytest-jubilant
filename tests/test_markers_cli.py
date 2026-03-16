@@ -113,7 +113,7 @@ def test_no_setup_and_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
     result.assert_outcomes(passed=1, skipped=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-regular"]
+    assert (tmp_path / "added.txt").read_text() == "test-sample-testing-regular"
     assert not (tmp_path / "destroyed.txt").exists()
 
 
@@ -125,8 +125,8 @@ def test_m_setup(pytester: pytest.Pytester, tmp_path: Path):
     result = pytester.runpytest("-m", "setup")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-setup"]
-    assert (tmp_path / "destroyed.txt").read_text().splitlines() == ["test-sample-testing-setup"]
+    assert (tmp_path / "added.txt").read_text() == "test-sample-testing-setup"
+    assert (tmp_path / "destroyed.txt").read_text() == "test-sample-testing-setup"
 
 
 def test_m_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
@@ -137,7 +137,7 @@ def test_m_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     result = pytester.runpytest("-m", "setup", "--no-teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-setup"]
+    assert (tmp_path / "added.txt").read_text() == "test-sample-testing-setup"
     assert not (tmp_path / "destroyed.txt").exists()
 
 
@@ -161,10 +161,8 @@ def test_m_teardown(pytester: pytest.Pytester, tmp_path: Path):
     result = pytester.runpytest("-m", "teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-teardown"]
-    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
-        "test-sample-testing-teardown"
-    ]
+    assert (tmp_path / "added.txt").read_text() == "test-sample-testing-teardown"
+    assert (tmp_path / "destroyed.txt").read_text() == "test-sample-testing-teardown"
 
 
 def test_keep_models_is_unknown(pytester: pytest.Pytester):
