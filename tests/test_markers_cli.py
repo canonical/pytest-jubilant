@@ -17,7 +17,7 @@ import jubilant
 
 def _append(path: Path, model: str) -> None:
     if path.exists():
-        path.write_text(path.read_text() + f"\\n{{model}}")
+        path.write_text(f"{{path.read_text()}}\\n{{model}}")
     else:
         path.write_text(f"{{model}}")
 
