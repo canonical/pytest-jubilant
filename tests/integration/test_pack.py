@@ -3,6 +3,7 @@ import secrets
 import shutil
 
 import pytest
+
 import pytest_jubilant
 
 FILE = pathlib.Path(__file__)
@@ -26,5 +27,5 @@ def local_tmp_path() -> pathlib.Path:
 
 def test_pack_ok(local_tmp_path: pathlib.Path):
     shutil.copytree(FILE.parent / "charms" / "simple", local_tmp_path, dirs_exist_ok=True)
-    charm = pytest_jubilant.pack(local_tmp_path) 
+    charm = pytest_jubilant.pack(local_tmp_path)
     assert charm.suffix == ".charm"
