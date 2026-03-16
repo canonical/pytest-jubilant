@@ -10,7 +10,7 @@ FILE = pathlib.Path(__file__)
 
 
 @pytest.fixture(scope="function")
-def local_tmp_path() -> pathlib.Path:
+def local_tmp_path():
     """Yield the path to a local temporary directory named uniquely for the given test.
 
     Snaps like Charmcraft can't access /tmp, so we need local temp files.
