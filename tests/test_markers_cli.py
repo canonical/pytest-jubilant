@@ -55,7 +55,7 @@ def test_teardown(temp_model_factory: pytest_jubilant.TempModelFactory):
 
 def test_no_teardown_skips_teardown_markers(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--no-teardown")
 
@@ -69,7 +69,7 @@ def test_no_teardown_skips_teardown_markers(pytester: pytest.Pytester, tmp_path:
 
 def test_no_setup_skips_setup_markers(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--no-setup")
 
@@ -89,7 +89,7 @@ def test_no_setup_and_no_teardown_skips_both_markers(
     tmp_path: Path,
 ):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
@@ -102,7 +102,7 @@ def test_no_setup_and_no_teardown_skips_both_markers(
 
 def test_marker_selection_setup_only(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "setup")
 
@@ -117,7 +117,7 @@ def test_marker_selection_setup_only(pytester: pytest.Pytester, tmp_path: Path):
 
 def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "teardown")
 
@@ -132,7 +132,7 @@ def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Pat
 
 def test_marker_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "setup", "--no-setup")
 
@@ -143,7 +143,7 @@ def test_marker_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
 
 def test_marker_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "setup", "--no-teardown")
 
@@ -156,7 +156,7 @@ def test_marker_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path
 
 def test_marker_teardown_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "teardown", "--no-teardown")
 
@@ -167,7 +167,7 @@ def test_marker_teardown_with_no_teardown(pytester: pytest.Pytester, tmp_path: P
 
 def test_marker_teardown_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("-m", "teardown", "--no-setup")
 
@@ -199,7 +199,7 @@ def pytest_addoption(parser):
     parser.addoption("--keep-models", action="store_true", default=False)
 """.strip()
     pytester.makeconftest(keep_models_conftest)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
     result = pytester.runpytest("--keep-models")
 
