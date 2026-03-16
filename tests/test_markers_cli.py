@@ -22,10 +22,6 @@ def test_regular():
     assert True
 """.strip()
 
-TEST_SIMPLE = """
-def test_ok():
-    assert True
-""".strip()
 
 TEST_KEEP_MODELS = """
 import os
@@ -135,11 +131,9 @@ def test_marker_teardown_with_no_setup(pytester):
     result.assert_outcomes(passed=1, deselected=2)
 
 
-
-
 def test_keep_models_option_is_unknown(pytester):
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_SIMPLE)
+    pytester.makepyfile(test_sample="def test_ok(): assert True")
 
     result = pytester.runpytest("--keep-models")
 
@@ -148,12 +142,11 @@ def test_keep_models_option_is_unknown(pytester):
 
 
 def test_keep_models_option_is_ignored(pytester, tmp_path, monkeypatch):
-    keep_models_conftest = (
-        CONFTEST
-        + "\n\n"
-        + "def pytest_addoption(parser):\n"
-        + "    parser.addoption(\"--keep-models\", action=\"store_true\", default=False)\n"
-    )
+    keep_models_conftest = CONFTEST + """
+
+def pytest_addoption(parser):
+    parser.addoption("--keep-models", action="store_true", default=False)
+"""
     destroy_log = tmp_path / "destroyed.txt"
 
     pytester.makeconftest(keep_models_conftest)
