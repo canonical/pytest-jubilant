@@ -56,9 +56,11 @@ def pytest_addoption(parser):
     group.addoption(
         "--dump-logs",
         action="store",
-        default=DEFAULT_JDL_DUMP_PATH,
-        help="Directory in which to dump any juju debug-log for any model prior to tearing it down. "
-        "Set to empty string to disable the behaviour.",
+        nargs="?",
+        const=DEFAULT_JDL_DUMP_PATH,
+        default=None,
+        help="Dump the juju debug-log for each model prior to teardown. "
+        f"The default dump location is {DEFAULT_JDL_DUMP_PATH!r}.",
     )
 
 
