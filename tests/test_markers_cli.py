@@ -52,21 +52,8 @@ def test_teardown(temp_model_factory: pytest_jubilant.TempModelFactory):
 """.strip()
 
 
-def test_no_teardown_skips_teardown_markers(pytester: pytest.Pytester, tmp_path: Path):
-    pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
-
-    result = pytester.runpytest("--no-teardown")
-
-    result.assert_outcomes(passed=2, skipped=1)
-    assert (tmp_path / "added.txt").read_text().splitlines() == [
-        "test-sample-testing-setup",
-        "test-sample-testing-regular",
-    ]
-    assert not (tmp_path / "destroyed.txt").exists()
-
-
-def test_no_setup_skips_setup_markers(pytester: pytest.Pytester, tmp_path: Path):
+def test_no_setup(pytester: pytest.Pytester, tmp_path: Path):
+    """``--no-setup`` means tests marked ``setup`` aren't run"""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
@@ -83,10 +70,23 @@ def test_no_setup_skips_setup_markers(pytester: pytest.Pytester, tmp_path: Path)
     ]
 
 
-def test_no_setup_and_no_teardown_skips_both_markers(
-    pytester: pytest.Pytester,
-    tmp_path: Path,
-):
+def test_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
+    """``--no-teardown`` means tests marked ``teardown`` aren't run"""
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+
+    result = pytester.runpytest("--no-teardown")
+
+    result.assert_outcomes(passed=2, skipped=1)
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-setup",
+        "test-sample-testing-regular",
+    ]
+    assert not (tmp_path / "destroyed.txt").exists()
+
+
+def test_no_setup_and_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
+    """``--no-setup`` and ``--no-teardown`` both being passed means neither are run"""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
@@ -97,7 +97,8 @@ def test_no_setup_and_no_teardown_skips_both_markers(
     assert not (tmp_path / "destroyed.txt").exists()
 
 
-def test_marker_selection_setup_only(pytester: pytest.Pytester, tmp_path: Path):
+def test_m_setup(pytester: pytest.Pytester, tmp_path: Path):
+    """``-m setup`` only runs tests marked ``setup``"""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
@@ -108,7 +109,32 @@ def test_marker_selection_setup_only(pytester: pytest.Pytester, tmp_path: Path):
     assert (tmp_path / "destroyed.txt").read_text().splitlines() == ["test-sample-testing-setup"]
 
 
-def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Path):
+def test_m_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
+    """``-m setup`` + ``--no-teardown`` means only ``setup`` tests run + models aren't torn down"""
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+
+    result = pytester.runpytest("-m", "setup", "--no-teardown")
+
+    result.assert_outcomes(passed=1, deselected=2)
+    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-setup"]
+    assert not (tmp_path / "destroyed.txt").exists()
+
+
+def test_m_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
+    """``-m setup`` and ``--no-setup`` mean no tests are run"""
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+
+    result = pytester.runpytest("-m", "setup", "--no-setup")
+
+    result.assert_outcomes(skipped=1, deselected=2)
+    assert not (tmp_path / "added.txt").exists()
+    assert not (tmp_path / "destroyed.txt").exists()
+
+
+def test_m_teardown(pytester: pytest.Pytester, tmp_path: Path):
+    """``-m teardown`` only runs tests marked ``teardown``"""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
 
@@ -121,53 +147,8 @@ def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Pat
     ]
 
 
-def test_marker_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
-    pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
-
-    result = pytester.runpytest("-m", "setup", "--no-setup")
-
-    result.assert_outcomes(skipped=1, deselected=2)
-    assert not (tmp_path / "added.txt").exists()
-    assert not (tmp_path / "destroyed.txt").exists()
-
-
-def test_marker_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
-    pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
-
-    result = pytester.runpytest("-m", "setup", "--no-teardown")
-
-    result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-setup"]
-    assert not (tmp_path / "destroyed.txt").exists()
-
-
-def test_marker_teardown_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
-    pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
-
-    result = pytester.runpytest("-m", "teardown", "--no-teardown")
-
-    result.assert_outcomes(skipped=1, deselected=2)
-    assert not (tmp_path / "added.txt").exists()
-    assert not (tmp_path / "destroyed.txt").exists()
-
-
-def test_marker_teardown_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
-    pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
-
-    result = pytester.runpytest("-m", "teardown", "--no-setup")
-
-    result.assert_outcomes(passed=1, deselected=2)
-    assert (tmp_path / "added.txt").read_text().splitlines() == ["test-sample-testing-teardown"]
-    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
-        "test-sample-testing-teardown"
-    ]
-
-
-def test_keep_models_option_is_unknown(pytester: pytest.Pytester):
+def test_keep_models_is_unknown(pytester: pytest.Pytester):
+    """``pytest-jubilant`` doesn't define ``--keep-models``"""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample="def test_ok(): assert True")
 
@@ -177,7 +158,8 @@ def test_keep_models_option_is_unknown(pytester: pytest.Pytester):
     assert any("--keep-models" in line for line in result.errlines)
 
 
-def test_keep_models_option_is_ignored(pytester: pytest.Pytester, tmp_path: Path):
+def test_keep_models_is_ignored(pytester: pytest.Pytester, tmp_path: Path):
+    """If a user defines ``--keep-models``, we don't respect it."""
     keep_models_conftest = f"""
 {CONFTEST}
 
