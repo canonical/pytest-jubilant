@@ -24,13 +24,12 @@ def test_regular():
 
 
 TEST_KEEP_MODELS = """
-import os
 from pathlib import Path
 
 import pytest
 import jubilant
 
-DESTROY_LOG = Path(os.environ["DESTROY_LOG"])
+DESTROY_LOG = Path("{tmp_file}")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -141,17 +140,17 @@ def test_keep_models_option_is_unknown(pytester):
     assert any("--keep-models" in line for line in result.errlines)
 
 
-def test_keep_models_option_is_ignored(pytester, tmp_path, monkeypatch):
+def test_keep_models_option_is_ignored(pytester, tmp_path):
     keep_models_conftest = CONFTEST + """
 
 def pytest_addoption(parser):
     parser.addoption("--keep-models", action="store_true", default=False)
 """
     destroy_log = tmp_path / "destroyed.txt"
+    test_sample = TEST_KEEP_MODELS.format(tmp_file=destroy_log.as_posix())
 
     pytester.makeconftest(keep_models_conftest)
-    pytester.makepyfile(test_sample=TEST_KEEP_MODELS)
-    monkeypatch.setenv("DESTROY_LOG", str(destroy_log))
+    pytester.makepyfile(test_sample=test_sample)
 
     result = pytester.runpytest("--keep-models")
 
