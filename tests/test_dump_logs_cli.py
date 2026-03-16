@@ -2,24 +2,7 @@ from pathlib import Path
 
 pytest_plugins = ["pytester"]
 
-CONFTEST = """
-import unittest.mock
-import pytest
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _global_random_bits_mock():
-    with unittest.mock.patch("secrets.token_hex", new=lambda _: "testing"):
-        yield
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _global_cli_mock():
-    mm = unittest.mock.MagicMock()
-    mm.return_value = unittest.mock.MagicMock(stdout="output", stderr="error")
-    with unittest.mock.patch("subprocess.run", new=mm):
-        yield
-""".strip()
+CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
 TEST = """
 def test_use_factory(temp_model_factory):
     temp_model_factory.get_juju("foo")
