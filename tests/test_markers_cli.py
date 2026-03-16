@@ -52,6 +52,26 @@ def test_teardown(temp_model_factory: pytest_jubilant.TempModelFactory):
 """.strip()
 
 
+def test_default(pytester: pytest.Pytester, tmp_path: Path):
+    """By default, all tests are run, and all models are torn down."""
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path))
+
+    result = pytester.runpytest()
+
+    result.assert_outcomes(passed=3)
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-setup",
+        "test-sample-testing-regular",
+        "test-sample-testing-teardown",
+    ]
+    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
+        "test-sample-testing-setup",
+        "test-sample-testing-regular",
+        "test-sample-testing-teardown",
+    ]
+
+
 def test_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     """``--no-setup`` means tests marked ``setup`` aren't run"""
     pytester.makeconftest(CONFTEST)
