@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -5,58 +6,14 @@ import pytest
 pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
-TEST_FILE = """
-from pathlib import Path
-from typing import Any
-
-import pytest
-import pytest_jubilant
-import jubilant
-
-
-def _append(path: Path, model: str) -> None:
-    if path.exists():
-        with path.open("a") as f:
-            f.write(f"\\n{{model}}")
-    else:
-        path.write_text(f"{{model}}")
-
-
-def _mock_add(self, model, *args: Any, **kwargs: Any):
-    _append(Path("{tmp_path}") / "added.txt", model)
-
-
-def _mock_destroy(self, model, *args: Any, **kwargs: Any):
-    _append(Path("{tmp_path}") / "destroyed.txt", model)
-
-
-@pytest.fixture(scope="module", autouse=True)
-def _patch_model_operations():
-    with pytest.MonkeyPatch.context() as monkeypatch:
-        monkeypatch.setattr(jubilant.Juju, "add_model", _mock_add)
-        monkeypatch.setattr(jubilant.Juju, "destroy_model", _mock_destroy)
-        yield
-
-
-@pytest.mark.setup
-def test_setup(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("setup")
-
-
-def test_regular(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("regular")
-
-
-@pytest.mark.teardown
-def test_teardown(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("teardown")
-""".strip()
+TEST_FILE = (Path(__file__).parent / "cli_markers_tests.py").read_text()
+REGEX_TARGET = "### REGEX SUBSTUTION TARGET ###"
 
 
 def test_default(pytester: pytest.Pytester, tmp_path: Path):
     """By default, all tests are run, and all models are torn down."""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest()
 
@@ -76,7 +33,7 @@ def test_default(pytester: pytest.Pytester, tmp_path: Path):
 def test_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     """``--no-setup`` means tests marked ``setup`` aren't run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("--no-setup")
 
@@ -94,7 +51,7 @@ def test_no_setup(pytester: pytest.Pytester, tmp_path: Path):
 def test_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``--no-teardown`` means tests marked ``teardown`` aren't run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("--no-teardown")
 
@@ -109,7 +66,7 @@ def test_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
 def test_no_setup_and_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``--no-setup`` and ``--no-teardown`` both being passed means neither are run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
@@ -121,7 +78,7 @@ def test_no_setup_and_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_setup(pytester: pytest.Pytester, tmp_path: Path):
     """``-m setup`` only runs tests marked ``setup``"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("-m", "setup")
 
@@ -133,7 +90,7 @@ def test_m_setup(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``-m setup`` + ``--no-teardown`` means only ``setup`` tests run + models aren't torn down"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("-m", "setup", "--no-teardown")
 
@@ -145,7 +102,7 @@ def test_m_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     """``-m setup`` and ``--no-setup`` mean no tests are run"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("-m", "setup", "--no-setup")
 
@@ -157,7 +114,7 @@ def test_m_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
 def test_m_teardown(pytester: pytest.Pytester, tmp_path: Path):
     """``-m teardown`` only runs tests marked ``teardown``"""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("-m", "teardown")
 
@@ -187,7 +144,7 @@ def pytest_addoption(parser):
     parser.addoption("--keep-models", action="store_true", default=False)
 """.strip()
     pytester.makeconftest(keep_models_conftest)
-    pytester.makepyfile(test_file=TEST_FILE.format(tmp_path=tmp_path))
+    pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
     result = pytester.runpytest("--keep-models")
 
