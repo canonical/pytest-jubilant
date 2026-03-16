@@ -7,7 +7,7 @@ And some cool stuff on top.
 
 ## `juju` 
 This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
-Cfr. the `--model` and `--no-teardown` options below for more.
+See also the `--model` and `--no-teardown` options below, which modify its behavior.
 Usage:
 
 ```python
@@ -86,7 +86,8 @@ Usage:
 ## `--no-teardown`
 Skip all tests marked with `teardown` and skip destroying the models.
 Useful to inspect the state of a model after a (failed) test run.
-Warning: `--keep-models` is no longer supported; use `--no-teardown` instead.
+Warning: The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
+Be sure to use `--no-teardown` instead.
 
 Usage:
     pytest ./tests/integration --no-teardown 
