@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
@@ -49,7 +51,7 @@ def test_keep_models_option_ignored(temp_model_factory):
 """.strip()
 
 
-def test_no_teardown_skips_teardown_markers(pytester):
+def test_no_teardown_skips_teardown_markers(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -58,7 +60,7 @@ def test_no_teardown_skips_teardown_markers(pytester):
     result.assert_outcomes(passed=2, skipped=1)
 
 
-def test_no_setup_skips_setup_markers(pytester):
+def test_no_setup_skips_setup_markers(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -67,7 +69,7 @@ def test_no_setup_skips_setup_markers(pytester):
     result.assert_outcomes(passed=2, skipped=1)
 
 
-def test_no_setup_and_no_teardown_skips_both_markers(pytester):
+def test_no_setup_and_no_teardown_skips_both_markers(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -76,7 +78,7 @@ def test_no_setup_and_no_teardown_skips_both_markers(pytester):
     result.assert_outcomes(passed=1, skipped=2)
 
 
-def test_marker_selection_setup_only(pytester):
+def test_marker_selection_setup_only(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -85,7 +87,7 @@ def test_marker_selection_setup_only(pytester):
     result.assert_outcomes(passed=1, deselected=2)
 
 
-def test_marker_selection_teardown_only(pytester):
+def test_marker_selection_teardown_only(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -94,7 +96,7 @@ def test_marker_selection_teardown_only(pytester):
     result.assert_outcomes(passed=1, deselected=2)
 
 
-def test_marker_setup_with_no_setup(pytester):
+def test_marker_setup_with_no_setup(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -103,7 +105,7 @@ def test_marker_setup_with_no_setup(pytester):
     result.assert_outcomes(skipped=1, deselected=2)
 
 
-def test_marker_setup_with_no_teardown(pytester):
+def test_marker_setup_with_no_teardown(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -112,7 +114,7 @@ def test_marker_setup_with_no_teardown(pytester):
     result.assert_outcomes(passed=1, deselected=2)
 
 
-def test_marker_teardown_with_no_teardown(pytester):
+def test_marker_teardown_with_no_teardown(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -121,7 +123,7 @@ def test_marker_teardown_with_no_teardown(pytester):
     result.assert_outcomes(skipped=1, deselected=2)
 
 
-def test_marker_teardown_with_no_setup(pytester):
+def test_marker_teardown_with_no_setup(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS)
 
@@ -130,7 +132,7 @@ def test_marker_teardown_with_no_setup(pytester):
     result.assert_outcomes(passed=1, deselected=2)
 
 
-def test_keep_models_option_is_unknown(pytester):
+def test_keep_models_option_is_unknown(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample="def test_ok(): assert True")
 
@@ -140,12 +142,14 @@ def test_keep_models_option_is_unknown(pytester):
     assert any("--keep-models" in line for line in result.errlines)
 
 
-def test_keep_models_option_is_ignored(pytester, tmp_path):
-    keep_models_conftest = CONFTEST + """
+def test_keep_models_option_is_ignored(pytester: pytest.Pytester, tmp_path: Path):
+    keep_models_conftest = f"""
+{CONFTEST}
+
 
 def pytest_addoption(parser):
     parser.addoption("--keep-models", action="store_true", default=False)
-"""
+""".strip()
     destroy_log = tmp_path / "destroyed.txt"
     test_sample = TEST_KEEP_MODELS.format(tmp_file=destroy_log.as_posix())
 
