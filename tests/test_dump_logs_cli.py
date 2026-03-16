@@ -28,7 +28,7 @@ def test_dump_logs_default_path(pytester):
 
     log_path = pytester.path / ".logs" / "test-sample-testing-foo-jdl.txt"
     assert log_path.exists()
-    assert log_path.read_text() == "output"
+    assert log_path.read_text() == "stdout patched by conftest.py"
 
 
 def test_dump_logs_custom_path(pytester, tmp_path):
@@ -41,4 +41,4 @@ def test_dump_logs_custom_path(pytester, tmp_path):
 
     log_path = custom_dir / "test-sample-testing-foo-jdl.txt"
     assert log_path.exists()
-    assert log_path.read_text() == "output"
+    assert log_path.read_text() == "stdout patched by conftest.py"
