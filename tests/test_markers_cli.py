@@ -78,10 +78,6 @@ def test_keep_models_option_ignored(temp_model_factory: pytest_jubilant.TempMode
 """.strip()
 
 
-def _read_log(path: Path) -> list[str]:
-    return path.read_text().splitlines() if path.exists() else []
-
-
 def test_no_teardown_skips_teardown_markers(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_sample=TEST_MARKERS.format(tmp_path=tmp_path.as_posix()))
@@ -89,11 +85,11 @@ def test_no_teardown_skips_teardown_markers(pytester: pytest.Pytester, tmp_path:
     result = pytester.runpytest("--no-teardown")
 
     result.assert_outcomes(passed=2, skipped=1)
-    assert _read_log(tmp_path / "added.txt") == [
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
         "test-sample-testing-setup",
         "test-sample-testing-regular",
     ]
-    assert _read_log(tmp_path / "destroyed.txt") == []
+    assert not (tmp_path / "destroyed.txt").exists()
 
 
 def test_no_setup_skips_setup_markers(pytester: pytest.Pytester, tmp_path: Path):
@@ -103,11 +99,11 @@ def test_no_setup_skips_setup_markers(pytester: pytest.Pytester, tmp_path: Path)
     result = pytester.runpytest("--no-setup")
 
     result.assert_outcomes(passed=2, skipped=1)
-    assert _read_log(tmp_path / "added.txt") == [
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
         "test-sample-testing-regular",
         "test-sample-testing-teardown",
     ]
-    assert _read_log(tmp_path / "destroyed.txt") == [
+    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
         "test-sample-testing-regular",
         "test-sample-testing-teardown",
     ]
@@ -123,8 +119,10 @@ def test_no_setup_and_no_teardown_skips_both_markers(
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
     result.assert_outcomes(passed=1, skipped=2)
-    assert _read_log(tmp_path / "added.txt") == ["test-sample-testing-regular"]
-    assert _read_log(tmp_path / "destroyed.txt") == []
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-regular"
+    ]
+    assert not (tmp_path / "destroyed.txt").exists()
 
 
 def test_marker_selection_setup_only(pytester: pytest.Pytester, tmp_path: Path):
@@ -134,8 +132,12 @@ def test_marker_selection_setup_only(pytester: pytest.Pytester, tmp_path: Path):
     result = pytester.runpytest("-m", "setup")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert _read_log(tmp_path / "added.txt") == ["test-sample-testing-setup"]
-    assert _read_log(tmp_path / "destroyed.txt") == ["test-sample-testing-setup"]
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-setup"
+    ]
+    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
+        "test-sample-testing-setup"
+    ]
 
 
 def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Path):
@@ -145,8 +147,12 @@ def test_marker_selection_teardown_only(pytester: pytest.Pytester, tmp_path: Pat
     result = pytester.runpytest("-m", "teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert _read_log(tmp_path / "added.txt") == ["test-sample-testing-teardown"]
-    assert _read_log(tmp_path / "destroyed.txt") == ["test-sample-testing-teardown"]
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-teardown"
+    ]
+    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
+        "test-sample-testing-teardown"
+    ]
 
 
 def test_marker_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
@@ -156,8 +162,8 @@ def test_marker_setup_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
     result = pytester.runpytest("-m", "setup", "--no-setup")
 
     result.assert_outcomes(skipped=1, deselected=2)
-    assert _read_log(tmp_path / "added.txt") == []
-    assert _read_log(tmp_path / "destroyed.txt") == []
+    assert not (tmp_path / "added.txt").exists()
+    assert not (tmp_path / "destroyed.txt").exists()
 
 
 def test_marker_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
@@ -167,8 +173,10 @@ def test_marker_setup_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path
     result = pytester.runpytest("-m", "setup", "--no-teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert _read_log(tmp_path / "added.txt") == ["test-sample-testing-setup"]
-    assert _read_log(tmp_path / "destroyed.txt") == []
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-setup"
+    ]
+    assert not (tmp_path / "destroyed.txt").exists()
 
 
 def test_marker_teardown_with_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
@@ -178,8 +186,8 @@ def test_marker_teardown_with_no_teardown(pytester: pytest.Pytester, tmp_path: P
     result = pytester.runpytest("-m", "teardown", "--no-teardown")
 
     result.assert_outcomes(skipped=1, deselected=2)
-    assert _read_log(tmp_path / "added.txt") == []
-    assert _read_log(tmp_path / "destroyed.txt") == []
+    assert not (tmp_path / "added.txt").exists()
+    assert not (tmp_path / "destroyed.txt").exists()
 
 
 def test_marker_teardown_with_no_setup(pytester: pytest.Pytester, tmp_path: Path):
@@ -189,8 +197,12 @@ def test_marker_teardown_with_no_setup(pytester: pytest.Pytester, tmp_path: Path
     result = pytester.runpytest("-m", "teardown", "--no-setup")
 
     result.assert_outcomes(passed=1, deselected=2)
-    assert _read_log(tmp_path / "added.txt") == ["test-sample-testing-teardown"]
-    assert _read_log(tmp_path / "destroyed.txt") == ["test-sample-testing-teardown"]
+    assert (tmp_path / "added.txt").read_text().splitlines() == [
+        "test-sample-testing-teardown"
+    ]
+    assert (tmp_path / "destroyed.txt").read_text().splitlines() == [
+        "test-sample-testing-teardown"
+    ]
 
 
 def test_keep_models_option_is_unknown(pytester: pytest.Pytester):
