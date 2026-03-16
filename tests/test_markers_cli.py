@@ -16,7 +16,8 @@ import jubilant
 
 def _append(path: Path, model: str) -> None:
     if path.exists():
-        path.write_text(f"{{path.read_text()}}\\n{{model}}")
+        with path.open("a") as f:
+            f.write(f"\\n{{model}}")
     else:
         path.write_text(f"{{model}}")
 
