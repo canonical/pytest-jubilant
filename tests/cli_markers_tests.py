@@ -8,10 +8,6 @@ import pytest
 
 import pytest_jubilant
 
-TMP_PATH = "### REGEX SUBSTUTION TARGET ###"
-if TMP_PATH == "### REGEX SUBSTUTION TARGET ###":
-    raise ValueError("The value of TMP_PATH must be substituted before running.")
-
 
 def _append(path: Path, model: str) -> None:
     if path.exists():
@@ -22,11 +18,11 @@ def _append(path: Path, model: str) -> None:
 
 
 def _mock_add(self, model, *args: Any, **kwargs: Any):
-    _append(Path(TMP_PATH) / "added.txt", model)
+    _append(Path("added.txt"), model)
 
 
 def _mock_destroy(self, model, *args: Any, **kwargs: Any):
-    _append(Path(TMP_PATH) / "destroyed.txt", model)
+    _append(Path("destroyed.txt"), model)
 
 
 @pytest.fixture(scope="module", autouse=True)
