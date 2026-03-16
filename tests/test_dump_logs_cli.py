@@ -6,6 +6,7 @@ CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
 TEST = """
 def test_use_factory(temp_model_factory):
     temp_model_factory.get_juju("foo")
+    temp_model_factory.get_juju("bar")
 """.strip()
 
 
@@ -26,9 +27,12 @@ def test_dump_logs_default_path(pytester):
     result = pytester.runpytest("--dump-logs")
     result.assert_outcomes(passed=1)
 
-    log_path = pytester.path / ".logs" / "test-sample-testing-foo-jdl.txt"
-    assert log_path.exists()
-    assert log_path.read_text() == "stdout patched by conftest.py"
+    foo_log_path = pytester.path / ".logs" / "test-sample-testing-foo-jdl.txt"
+    assert foo_log_path.exists()
+    assert foo_log_path.read_text() == "stdout patched by conftest.py"
+    bar_log_path = pytester.path / ".logs" / "test-sample-testing-bar-jdl.txt"
+    assert bar_log_path.exists()
+    assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
 
 def test_dump_logs_custom_path(pytester, tmp_path):
@@ -39,6 +43,9 @@ def test_dump_logs_custom_path(pytester, tmp_path):
     result = pytester.runpytest("--dump-logs", str(custom_dir))
     result.assert_outcomes(passed=1)
 
-    log_path = custom_dir / "test-sample-testing-foo-jdl.txt"
-    assert log_path.exists()
-    assert log_path.read_text() == "stdout patched by conftest.py"
+    foo_log_path = custom_dir / "test-sample-testing-foo-jdl.txt"
+    assert foo_log_path.exists()
+    assert foo_log_path.read_text() == "stdout patched by conftest.py"
+    bar_log_path = custom_dir / "test-sample-testing-bar-jdl.txt"
+    assert bar_log_path.exists()
+    assert bar_log_path.read_text() == "stdout patched by conftest.py"
