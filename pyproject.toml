@@ -31,7 +31,7 @@ unit = [
 integration = [
     "coverage[toml]",
     "pytest",
-    "ops>=3,<4",
+    "ops>=2,<4",
 ]
 
 [tool.setuptools.dynamic]
