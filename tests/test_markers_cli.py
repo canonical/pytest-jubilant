@@ -15,38 +15,37 @@ def test_setup():
     assert True
 
 
-@pytest.mark.teardown
-def test_teardown():
+def test_regular():
     assert True
 
 
-def test_regular():
+@pytest.mark.teardown
+def test_teardown():
     assert True
 """.strip()
 
 
 TEST_KEEP_MODELS = """
 from pathlib import Path
+from typing import Any
 
 import pytest
+import pytest_jubilant
 import jubilant
 
-DESTROY_LOG = Path("{tmp_file}")
+
+def _mock_destroy(self, model, *args: Any, **kwargs: Any):
+    Path("{tmp_file}").write_text(model)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def _patch_destroy_model():
-    mp = pytest.MonkeyPatch()
-
-    def _destroy(self, model, destroy_storage=True, force=False):
-        DESTROY_LOG.write_text(model)
-
-    mp.setattr(jubilant.Juju, "destroy_model", _destroy)
-    yield
-    mp.undo()
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(jubilant.Juju, "destroy_model", _mock_destroy)
+        yield
 
 
-def test_keep_models_option_ignored(temp_model_factory):
+def test_keep_models_option_ignored(temp_model_factory: pytest_jubilant.TempModelFactory):
     temp_model_factory.get_juju("foo")
 """.strip()
 
