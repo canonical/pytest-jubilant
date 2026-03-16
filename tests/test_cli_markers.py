@@ -49,7 +49,7 @@ def test_no_setup(pytester: pytest.Pytester, tmp_path: Path):
 
 
 def test_no_teardown(pytester: pytest.Pytester, tmp_path: Path):
-    """``--no-teardown`` means tests marked ``teardown`` aren't run"""
+    """``--no-teardown`` means tests marked ``teardown`` aren't run, and models aren't torn down"""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=re.sub(REGEX_TARGET, str(tmp_path), TEST_FILE, count=1))
 
