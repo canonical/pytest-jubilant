@@ -5,7 +5,7 @@ import pytest
 pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
-TEST_SAMPLE = """
+TEST_FILE = """
 from typing import Any
 
 import pytest
@@ -29,16 +29,16 @@ def _patch_add_model():
 
 
 def test_create_model(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("testing")
+    temp_model_factory.get_juju("my-fancy-model")
 """.strip()
 
 
 def test_allow_existing_model(pytester: pytest.Pytester):
     """If ``--model`` is set, an existing model error is allowed (and expected)."""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_SAMPLE)
+    pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--model", "testing")
+    result = pytester.runpytest("--model", "my-fancy-model")
 
     result.assert_outcomes(passed=1)
 
@@ -46,8 +46,16 @@ def test_allow_existing_model(pytester: pytest.Pytester):
 def test_disallow_existing_model(pytester: pytest.Pytester):
     """Without ``--model``, an existing model error is raised if there's a collision."""
     pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_sample=TEST_SAMPLE)
+    pytester.makepyfile(test_file=TEST_FILE)
 
     result = pytester.runpytest()
 
     result.assert_outcomes(failed=1)
+    module_name = "test-file"
+    randbits = "testing"
+    model_name = "my-fancy-model"
+    msg = (
+        "ERROR failed to create new model: "
+        f'model "{module_name}-{randbits}-{model_name}" for admin already exists (already exists)'
+    )
+    assert msg in result.stdout.str()
