@@ -75,9 +75,9 @@ def test_juju_debug_log_on_failure(pytester, tmp_path):
     assert outcomes.get("failed")
 
     # The full logs are still written on failure with --dump-logs.
-    foo_log_path = custom_dir / ".logs" / "model-t-foo-jdl.txt"
+    foo_log_path = custom_dir / "model-t-foo-jdl.txt"
     assert foo_log_path.exists()
-    bar_log_path = custom_dir / ".logs" / "model-t-bar-jdl.txt"
+    bar_log_path = custom_dir / "model-t-bar-jdl.txt"
     assert bar_log_path.exists()
 
     # We emit the last 1000 lines of ``juju debug-log`` for each model if tests fail.
