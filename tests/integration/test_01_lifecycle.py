@@ -1,5 +1,7 @@
 import pathlib
 
+pytest_plugins = ["pytester"]
+
 TEST_FILE = (pathlib.Path(__file__).parent / "lifecycle_tests.py").read_text()
 
 
