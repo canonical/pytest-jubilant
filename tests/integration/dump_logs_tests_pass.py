@@ -1,3 +1,5 @@
+"""This file is executed via test_NN_dump_logs.py, it should not be run directly."""
+
 from __future__ import annotations
 
 import os
