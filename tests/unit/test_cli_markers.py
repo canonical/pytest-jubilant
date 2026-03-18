@@ -31,24 +31,38 @@ def test_default(pytester: pytest.Pytester):
     ]
 
 
-def test_no_setup(pytester: pytest.Pytester):
+def test_no_setup_ok(pytester: pytest.Pytester):
     """``--no-setup`` means tests marked ``setup`` aren't run, and models aren't created.
 
-    We still try to tear down the models we assume exist though.
-    This only really makes sense if ``--model`` or ``--no-teardown`` were also specified.
+    This is only permitted if ``--model`` is also passed.
+    We'll tear down the models unless ``--no-teardown`` is also passed.
     """
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_file=TEST_FILE)
+
+    result = pytester.runpytest("--no-setup", "--model", "model-t")
+
+    result.assert_outcomes(passed=2, skipped=1)
+    assert not (pytester.path / "added.txt").exists()
+    assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
+        "model-t-autouse-module-scoped-fixture",
+        "model-t-regular",
+        "model-t-teardown",
+    ]
+
+
+def test_no_setup_without_model_is_an_error(pytester: pytest.Pytester):
+    """It's an immediate error to pass ``--no-setup`` without also pasing ``--model``."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
     result = pytester.runpytest("--no-setup")
 
-    result.assert_outcomes(passed=2, skipped=1)
-    assert not (pytester.path / "added.txt").exists()
-    assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-regular",
-        "test-file-testing-teardown",
-    ]
+    assert result.ret == 4  # Exit code for a pytest.UsageError
+    result.stderr.re_match_lines([
+        ".*--no-setup cannot be specified without --model.*",
+        ".*unless you specify --no-teardown, the model.*",
+    ])
 
 
 def test_no_teardown(pytester: pytest.Pytester):
@@ -67,19 +81,30 @@ def test_no_teardown(pytester: pytest.Pytester):
     assert not (pytester.path / "destroyed.txt").exists()
 
 
-def test_no_setup_and_no_teardown(pytester: pytest.Pytester):
+def test_no_setup_and_no_teardown_ok(pytester: pytest.Pytester):
     """``--no-setup`` and ``--no-teardown`` both being passed means neither are run.
 
-    We don't create or tear down any models either.
+    This only works if ``--model`` is specified.
     """
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_file=TEST_FILE)
+
+    result = pytester.runpytest("--no-setup", "--no-teardown", "--model", "model-t")
+
+    result.assert_outcomes(passed=1, skipped=2)
+    assert not (pytester.path / "added.txt").exists()
+    assert not (pytester.path / "destroyed.txt").exists()
+
+
+def test_no_setup_and_no_teardown_without_model_is_an_error(pytester: pytest.Pytester):
+    """``--no-setup`` and ``--no-teardown`` both being passed without ``--model`` is an error."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
-    result.assert_outcomes(passed=1, skipped=2)
-    assert not (pytester.path / "added.txt").exists()
-    assert not (pytester.path / "destroyed.txt").exists()
+    assert result.ret == 4  # Exit code for a pytest.UsageError
+    result.stderr.re_match_lines([".*--no-setup cannot be specified without --model.*"])
 
 
 def test_m_setup(pytester: pytest.Pytester):
@@ -112,18 +137,6 @@ def test_m_setup_with_no_teardown(pytester: pytest.Pytester):
         "test-file-testing-autouse-module-scoped-fixture",
         "test-file-testing-setup",
     ]
-    assert not (pytester.path / "destroyed.txt").exists()
-
-
-def test_m_setup_with_no_setup(pytester: pytest.Pytester):
-    """``-m setup`` and ``--no-setup`` mean no tests are run"""
-    pytester.makeconftest(CONFTEST)
-    pytester.makepyfile(test_file=TEST_FILE)
-
-    result = pytester.runpytest("-m", "setup", "--no-setup")
-
-    result.assert_outcomes(skipped=1, deselected=2)
-    assert not (pytester.path / "added.txt").exists()
     assert not (pytester.path / "destroyed.txt").exists()
 
 

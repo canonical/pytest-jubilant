@@ -63,6 +63,18 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "teardown: tests that tear down some parts of the environment."
     )
+    if config.getoption("--no-setup") and not config.getoption("--model"):
+        msg = (
+            "--no-setup cannot be specified without --model"
+            ", because --no-setup will skip model creation"
+            ", and surely your tests need a model."
+        )
+        if not config.getoption("--no-teardown"):
+            msg += (
+                "\nNote that unless you specify --no-teardown"
+                ", the model(s) identified by --model *will* be torn down!"
+            )
+        raise pytest.UsageError(msg)
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items):
