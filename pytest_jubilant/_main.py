@@ -11,14 +11,13 @@ import logging
 import secrets
 import shlex
 import subprocess
+import sys
+import time
 from pathlib import Path
 
 import jubilant
 import pytest
 import yaml
-
-JDL_LOGFILE_EXTENSION = "-jdl.txt"
-DEFAULT_JDL_DUMP_PATH = "./.logs"
 
 
 def pytest_addoption(parser):
@@ -51,10 +50,11 @@ def pytest_addoption(parser):
         "--dump-logs",
         action="store",
         nargs="?",
-        const=DEFAULT_JDL_DUMP_PATH,
+        const=Path(".logs"),
         default=None,
+        type=Path,
         help="Dump the juju debug-log for each model prior to teardown. "
-        f"The default dump location is {DEFAULT_JDL_DUMP_PATH!r}.",
+        "The default dump location is './.logs'.",
     )
 
 
@@ -87,11 +87,13 @@ class TempModelFactory:
         prefix: str,
         randbits: str | None = None,
         allow_existing_model: bool = False,
+        log_path: Path | None = None,
     ):
         self.prefix = prefix
         self.randbits = randbits
         self._models: dict[str, jubilant.Juju] = {}
         self._allow_existing_model = allow_existing_model
+        self._log_path = log_path
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
         model_name = "-".join(filter(None, (self.prefix, self.randbits, suffix)))
@@ -116,13 +118,19 @@ class TempModelFactory:
         self._models[model_name] = juju
         return juju
 
-    def _dump_all_logs(self, path: Path = Path(DEFAULT_JDL_DUMP_PATH)):
-        path.mkdir(parents=True, exist_ok=True)
+    def _dump_all_logs(self):
+        time.sleep(0.2)  # Wait for Juju to process logs or the latest lines might be missing
+        if self._log_path is not None:
+            self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
-            jdl_path = path / (model + JDL_LOGFILE_EXTENSION)
             jdl = juju.cli("debug-log", "--replay")
-            jdl_path.write_text(jdl)
-            logging.info(f"dropping jdl for model {model} to {jdl_path}")
+            last_1000_lines = "\n".join(jdl.rsplit("\n", 1000)[-1000:])
+            logging.info(f"Printing last 1000 lines of ``juju debug-log`` for model {model} ...")
+            print(last_1000_lines, file=sys.stderr)
+            if self._log_path is not None:
+                jdl_path = self._log_path / (model + "-jdl.txt")
+                jdl_path.write_text(jdl)
+                logging.info(f"Wrote full ``juju debug-log`` for model {model} to {jdl_path}")
 
     def _teardown(self, force: bool = False):
         for model, juju in self._models.items():
@@ -138,13 +146,17 @@ def temp_model_factory(request):
     else:
         prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
         randbits = secrets.token_hex(4)
-    factory = TempModelFactory(prefix=prefix, randbits=randbits, allow_existing_model=user_model)
+    factory = TempModelFactory(
+        prefix=prefix,
+        randbits=randbits,
+        allow_existing_model=user_model,
+        log_path=request.config.getoption("--dump-logs"),
+    )
 
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    if dump_logs := request.config.getoption("--dump-logs"):
-        factory._dump_all_logs(Path(dump_logs))
+    factory._dump_all_logs()
 
     if not request.config.getoption("--no-teardown"):
         # TODO: jubilant defaults to --force, but is that a good idea?
