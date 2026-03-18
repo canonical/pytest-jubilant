@@ -87,11 +87,13 @@ class TempModelFactory:
         prefix: str,
         randbits: str | None = None,
         allow_existing_model: bool = False,
+        add_model: bool = False,
     ):
         self.prefix = prefix
         self.randbits = randbits
         self._models: dict[str, jubilant.Juju] = {}
         self._allow_existing_model = allow_existing_model
+        self._add_model = add_model
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
         model_name = "-".join(filter(None, (self.prefix, self.randbits, suffix)))
@@ -102,16 +104,17 @@ class TempModelFactory:
             )
 
         juju = jubilant.Juju(model=model_name)
-        try:
-            juju.add_model(model_name)
-        except jubilant.CLIError as e:
-            # If --model is set (_allow_existing_model is True), then the user wants collisions.
-            # If the name is randomly generated, the chance of colliding with another
-            # randomly generated model that wasn't torn down is tiny, so we we'll just raise.
-            if self._allow_existing_model and "already exists" in (e.stderr or ""):
-                pass
-            else:
-                raise
+        if self._add_model:
+            try:
+                juju.add_model(model_name)
+            except jubilant.CLIError as e:
+                # If --model is set (_allow_existing_model is True), then the user wants collisions.
+                # If the name is randomly generated, the chance of colliding with another
+                # randomly generated model that wasn't torn down is tiny, so we we'll just raise.
+                if self._allow_existing_model and "already exists" in (e.stderr or ""):
+                    pass
+                else:
+                    raise
 
         self._models[model_name] = juju
         return juju
@@ -138,7 +141,12 @@ def temp_model_factory(request):
     else:
         prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
         randbits = secrets.token_hex(4)
-    factory = TempModelFactory(prefix=prefix, randbits=randbits, allow_existing_model=user_model)
+    factory = TempModelFactory(
+        prefix=prefix,
+        randbits=randbits,
+        allow_existing_model=user_model,
+        add_model=not request.config.getoption("--no-setup"),
+    )
 
     yield factory
 
