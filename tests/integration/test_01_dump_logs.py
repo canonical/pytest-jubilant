@@ -3,6 +3,8 @@
 Named to run after the pack tests, as the test files use the packed charm.
 """
 
+from __future__ import annotations
+
 import pathlib
 
 pytest_plugins = ["pytester"]
@@ -81,25 +83,23 @@ def test_juju_debug_log_on_failure(pytester, tmp_path):
     assert bar_log_path.exists()
 
     # We emit the last 1000 lines of ``juju debug-log`` for each model if tests fail.
+    # We log the last 1000 if present, but our tests aren't very long,
+    # and the linecount depends on external factors like how long we waited for active,
+    # so we just assert that we logged something.
     # Model 'model-t-foo':
     foo_msg = "Logging last 1000 lines of ``juju debug-log`` for model model-t-foo:"
     foo_lines = result.stdout.get_lines_after(f"*{foo_msg}*")  # Match with fnmatch.
-    for i, line in enumerate(foo_lines):
-        if "Wrote full ``juju debug-log`` for model" in line:
-            foo_end = i
-            break
-    else:  # no break
-        print(foo_lines)
-        assert False, "Didn't find expected message about writing the full log!"
-    assert foo_end == 1000
+    foo_end = _index_contains(foo_lines, "Wrote full ``juju debug-log`` for model")
+    assert foo_end > 1
     # Model 'model-t-bar':
     bar_msg = "Logging last 1000 lines of ``juju debug-log`` for model model-t-bar:"
     bar_lines = result.stdout.get_lines_after(f"*{bar_msg}*")  # Match with fnmatch.
-    for i, line in enumerate(bar_lines):
-        if "Wrote full ``juju debug-log`` for model" in line:
-            bar_end = i
-            break
-    else:  # no break
-        print(bar_lines)
-        assert False, "Didn't find expected message about writing the full log!"
-    assert bar_end == 1000
+    bar_end = _index_contains(bar_lines, "Wrote full ``juju debug-log`` for model")
+    assert bar_end > 1
+
+
+def _index_contains(lines: list[str], target: str) -> int:
+    for i, line in enumerate(lines):
+        if target in line:
+            return i
+    raise ValueError(f"No match for {target!r} in {lines}")
