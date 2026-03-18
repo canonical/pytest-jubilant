@@ -52,11 +52,13 @@ def test_dump_logs_custom_path(pytester, tmp_path):
 
 
 def test_juju_debug_log_on_failure(pytester, tmp_path):
-    pytester.makepyfile(test_file="""
+    pytester.makepyfile(
+        test_file="""
 def test_fail(temp_model_factory):
     temp_model_factory.get_juju("foo")
     assert False
-""")
+"""
+    )
     custom_dir = tmp_path / "custom-logs"
 
     result = pytester.runpytest("--model", "model-t", "--dump-logs", str(custom_dir))
@@ -79,4 +81,4 @@ def test_fail(temp_model_factory):
         print(foo_lines)
         assert False, "Didn't find expected message about writing the full log!"
     assert foo_end == 1
-    assert foo_lines[: foo_end] == ["stdout patched by conftest.py"]  # Mocked call to Juju CLI.
+    assert foo_lines[:foo_end] == ["stdout patched by conftest.py"]  # Mocked call to Juju CLI.
