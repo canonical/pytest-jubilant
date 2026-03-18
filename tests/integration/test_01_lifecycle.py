@@ -1,12 +1,6 @@
 import pathlib
-import secrets
-import shutil
 
-import pytest
-
-import pytest_jubilant
-
-TEST_FILE = (pathlib.Path(__file__).parent / 'lifecycle_tests.py').read_text()
+TEST_FILE = (pathlib.Path(__file__).parent / "lifecycle_tests.py").read_text()
 
 
 def test_dump_logs_not_passed(pytester):
@@ -19,7 +13,7 @@ def test_dump_logs_not_passed(pytester):
     assert outcomes["errors"] == 0
     assert outcomes["warnings"] == 0
 
-    assert not (pytester.path / '.logs').exists()
+    assert not (pytester.path / ".logs").exists()
 
 
 def test_dump_logs_default_path(pytester):
@@ -39,7 +33,6 @@ def test_dump_logs_default_path(pytester):
 
 
 def test_dump_logs_custom_path(pytester, tmp_path):
-    pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
     custom_dir = tmp_path / "custom-logs"
 

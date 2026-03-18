@@ -1,4 +1,3 @@
-import pathlibg
 
 import jubilant
 import pytest
