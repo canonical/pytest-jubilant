@@ -12,10 +12,10 @@ def test_no_dump_logs(pytester):
 
     outcomes = result.parseoutcomes()
     print(outcomes)
-    assert outcomes.get('passed')
-    assert not outcomes.get('failed')
-    assert not outcomes.get('errors')
-    assert not outcomes.get('warnings')
+    assert outcomes.get("passed")
+    assert not outcomes.get("failed")
+    assert not outcomes.get("errors")
+    assert not outcomes.get("warnings")
 
     assert not (pytester.path / ".logs").exists()
 
@@ -27,10 +27,10 @@ def test_dump_logs_default_path(pytester):
 
     outcomes = result.parseoutcomes()
     print(outcomes)
-    assert outcomes.get('passed')
-    assert not outcomes.get('failed')
-    assert not outcomes.get('errors')
-    assert not outcomes.get('warnings')
+    assert outcomes.get("passed")
+    assert not outcomes.get("failed")
+    assert not outcomes.get("errors")
+    assert not outcomes.get("warnings")
 
     foo_log_path = pytester.path / ".logs" / "modelt-foo-jdl.txt"
     assert foo_log_path.exists()
@@ -46,10 +46,10 @@ def test_dump_logs_custom_path(pytester, tmp_path):
 
     outcomes = result.parseoutcomes()
     print(outcomes)
-    assert outcomes.get('passed')
-    assert not outcomes.get('failed')
-    assert not outcomes.get('errors')
-    assert not outcomes.get('warnings')
+    assert outcomes.get("passed")
+    assert not outcomes.get("failed")
+    assert not outcomes.get("errors")
+    assert not outcomes.get("warnings")
 
     foo_log_path = custom_dir / ".logs" / "modelt-foo-jdl.txt"
     assert foo_log_path.exists()
