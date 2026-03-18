@@ -1,8 +1,14 @@
+from __future__ import annotations
+
+import os
+import pathlib
+import typing
 
 import jubilant
 import pytest
 
-import pytest_jubilant
+if typing.TYPE_CHECKING:
+    import pytest_jubilant
 
 
 @pytest.fixture(scope="module")
