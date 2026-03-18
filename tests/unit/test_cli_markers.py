@@ -22,7 +22,7 @@ def test_default(pytester: pytest.Pytester):
         "test-file-testing-regular",
         "test-file-testing-teardown",
     ]
-    # teardown occurs in the same order as they were registered
+    # Teardown occurs in the same order as they were registered.
     assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
         "test-file-testing-autouse-module-scoped-fixture",
         "test-file-testing-setup",
