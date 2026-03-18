@@ -118,15 +118,19 @@ class TempModelFactory:
         self._models[model_name] = juju
         return juju
 
-    def _dump_all_logs(self):
+    def _dump_all_logs(self, *, print_to_stderr: bool = False):
+        if not (print_to_stderr or self._log_path):
+            return
         time.sleep(0.2)  # Wait for Juju to process logs or the latest lines might be missing
         if self._log_path is not None:
             self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
             jdl = juju.cli("debug-log", "--replay")
-            last_1000_lines = "\n".join(jdl.rsplit("\n", 1000)[-1000:])
-            logging.info(f"Printing last 1000 lines of ``juju debug-log`` for model {model} ...")
-            print(last_1000_lines, file=sys.stderr)
+            if print_to_stderr:
+                last_1000_lines = "\n".join(jdl.rsplit("\n", 1000)[-1000:])
+                msg = f"Printing last 1000 lines of ``juju debug-log`` for model {model} ..."
+                logging.info(msg)
+                print(last_1000_lines, file=sys.stderr)
             if self._log_path is not None:
                 jdl_path = self._log_path / (model + "-jdl.txt")
                 jdl_path.write_text(jdl)
@@ -156,7 +160,7 @@ def temp_model_factory(request):
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    factory._dump_all_logs()
+    factory._dump_all_logs(print_to_stderr=bool(request.session.testsfailed))
 
     if not request.config.getoption("--no-teardown"):
         # TODO: jubilant defaults to --force, but is that a good idea?
