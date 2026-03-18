@@ -127,10 +127,9 @@ class TempModelFactory:
         for model, juju in self._models.items():
             jdl = juju.cli("debug-log", "--replay")
             if print_to_stderr:
+                msg = f"Logging last 1000 lines of ``juju debug-log`` for model {model}:"
                 last_1000_lines = "\n".join(jdl.rsplit("\n", 1000)[-1000:])
-                msg = f"Printing last 1000 lines of ``juju debug-log`` for model {model} ..."
-                logging.info(msg)
-                print(last_1000_lines, file=sys.stderr)
+                logging.info("%s\n%s", msg, last_1000_lines)
             if self._log_path is not None:
                 jdl_path = self._log_path / (model + "-jdl.txt")
                 jdl_path.write_text(jdl)
