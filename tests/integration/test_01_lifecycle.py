@@ -11,9 +11,8 @@ def test_dump_logs_not_passed(pytester):
     result = pytester.runpytest()
 
     outcomes = result.parseoutcomes()
-    assert outcomes["failed"] == 0
-    assert outcomes["errors"] == 0
-    assert outcomes["warnings"] == 0
+    print(outcomes)
+    result.assert_outcomes(failed=0, errors=0, warnings=0)
 
     assert not (pytester.path / ".logs").exists()
 
@@ -24,9 +23,8 @@ def test_dump_logs_default_path(pytester):
     result = pytester.runpytest("--model", "modelt", "--dump-logs")
 
     outcomes = result.parseoutcomes()
-    assert outcomes["failed"] == 0
-    assert outcomes["errors"] == 0
-    assert outcomes["warnings"] == 0
+    print(outcomes)
+    result.assert_outcomes(failed=0, errors=0, warnings=0)
 
     foo_log_path = pytester.path / ".logs" / "modelt-foo-jdl.txt"
     assert foo_log_path.exists()
@@ -41,9 +39,8 @@ def test_dump_logs_custom_path(pytester, tmp_path):
     result = pytester.runpytest("--model", "modelt", "--dump-logs", str(custom_dir))
 
     outcomes = result.parseoutcomes()
-    assert outcomes["failed"] == 0
-    assert outcomes["errors"] == 0
-    assert outcomes["warnings"] == 0
+    print(outcomes)
+    result.assert_outcomes(failed=0, errors=0, warnings=0)
 
     foo_log_path = custom_dir / ".logs" / "modelt-foo-jdl.txt"
     assert foo_log_path.exists()
