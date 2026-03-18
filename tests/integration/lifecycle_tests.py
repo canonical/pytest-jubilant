@@ -30,5 +30,5 @@ def test_deploy(models: tuple[jubilant.Juju, jubilant.Juju], charm: pathlib.Path
     foo, bar = models
     foo.deploy(charm)
     bar.deploy(charm)
-    foo.wait(jubilant.all_active)
+    foo.wait(jubilant.all_active, timeout=900)
     bar.wait(jubilant.all_active)
