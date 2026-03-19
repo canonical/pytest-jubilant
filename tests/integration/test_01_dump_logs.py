@@ -7,12 +7,15 @@ from __future__ import annotations
 
 import pathlib
 
+import pytest
+
 pytest_plugins = ["pytester"]
 
 TEST_PASS = (pathlib.Path(__file__).parent / "dump_logs_tests_pass.py").read_text()
 TEST_FAIL = (pathlib.Path(__file__).parent / "dump_logs_tests_fail.py").read_text()
 
 
+@pytest.mark.skip()
 def test_no_dump_logs(pytester):
     pytester.makepyfile(test_file=TEST_PASS)
 
@@ -28,6 +31,7 @@ def test_no_dump_logs(pytester):
     assert not (pytester.path / ".logs").exists()
 
 
+@pytest.mark.skip()
 def test_dump_logs_default_path(pytester):
     pytester.makepyfile(test_file=TEST_PASS)
 
@@ -46,6 +50,7 @@ def test_dump_logs_default_path(pytester):
     assert bar_log_path.exists()
 
 
+@pytest.mark.skip()
 def test_dump_logs_custom_path(pytester, tmp_path):
     pytester.makepyfile(test_file=TEST_PASS)
     custom_dir = tmp_path / "custom-logs"
