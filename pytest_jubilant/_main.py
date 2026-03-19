@@ -124,7 +124,12 @@ class TempModelFactory:
         if self._log_path is not None:
             self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
-            jdl = juju.cli("debug-log", "--replay")
+            cmd = ["debug-log"]
+            if self._log_path is not None:
+                cmd.append("--replay")
+            else:
+                cmd.extend(["--lines", "1000", "--no-tail"])
+            jdl = juju.cli(*cmd)
             if print_to_stderr:
                 msg = f"Logging last 1000 lines of ``juju debug-log`` for model {model}:"
                 last_1000_lines = "\n".join(jdl.rsplit("\n", 1000)[-1000:])
