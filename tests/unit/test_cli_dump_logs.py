@@ -27,10 +27,10 @@ def test_dump_logs_default_path(pytester):
     result = pytester.runpytest("--dump-logs")
     result.assert_outcomes(passed=1)
 
-    foo_log_path = pytester.path / ".logs" / "test-file-testing-foo-jdl.txt"
+    foo_log_path = pytester.path / ".logs" / "test-file-testing-foo-juju-debug.log"
     assert foo_log_path.exists()
     assert foo_log_path.read_text() == "stdout patched by conftest.py"
-    bar_log_path = pytester.path / ".logs" / "test-file-testing-bar-jdl.txt"
+    bar_log_path = pytester.path / ".logs" / "test-file-testing-bar-juju-debug.log"
     assert bar_log_path.exists()
     assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
@@ -43,10 +43,10 @@ def test_dump_logs_custom_path(pytester, tmp_path):
     result = pytester.runpytest("--dump-logs", str(custom_dir))
     result.assert_outcomes(passed=1)
 
-    foo_log_path = custom_dir / "test-file-testing-foo-jdl.txt"
+    foo_log_path = custom_dir / "test-file-testing-foo-juju-debug.log"
     assert foo_log_path.exists()
     assert foo_log_path.read_text() == "stdout patched by conftest.py"
-    bar_log_path = custom_dir / "test-file-testing-bar-jdl.txt"
+    bar_log_path = custom_dir / "test-file-testing-bar-juju-debug.log"
     assert bar_log_path.exists()
     assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
@@ -73,5 +73,5 @@ def test_fail(temp_model_factory):
     assert "Wrote full ``juju debug-log`` for model" in foo_lines[1]
 
     # The full logs are still written on failure with --dump-logs.
-    foo_log_path = custom_dir / "model-t-foo-jdl.txt"
+    foo_log_path = custom_dir / "model-t-foo-juju-debug.log"
     assert foo_log_path.exists()

@@ -40,9 +40,9 @@ def test_dump_logs_default_path(pytester):
     assert not outcomes.get("errors")
     assert not outcomes.get("warnings")
 
-    foo_log_path = pytester.path / ".logs" / "model-t-foo-jdl.txt"
+    foo_log_path = pytester.path / ".logs" / "model-t-foo-juju-debug.log"
     assert foo_log_path.exists()
-    bar_log_path = pytester.path / ".logs" / "model-t-bar-jdl.txt"
+    bar_log_path = pytester.path / ".logs" / "model-t-bar-juju-debug.log"
     assert bar_log_path.exists()
 
 
@@ -59,9 +59,9 @@ def test_dump_logs_custom_path(pytester, tmp_path):
     assert not outcomes.get("errors")
     assert not outcomes.get("warnings")
 
-    foo_log_path = custom_dir / "model-t-foo-jdl.txt"
+    foo_log_path = custom_dir / "model-t-foo-juju-debug.log"
     assert foo_log_path.exists()
-    bar_log_path = custom_dir / "model-t-bar-jdl.txt"
+    bar_log_path = custom_dir / "model-t-bar-juju-debug.log"
     assert bar_log_path.exists()
 
 
@@ -77,9 +77,9 @@ def test_juju_debug_log_on_failure(pytester, tmp_path):
     assert outcomes.get("failed")
 
     # The full logs are still written on failure with --dump-logs.
-    foo_log_path = custom_dir / "model-t-foo-jdl.txt"
+    foo_log_path = custom_dir / "model-t-foo-juju-debug.log"
     assert foo_log_path.exists()
-    bar_log_path = custom_dir / "model-t-bar-jdl.txt"
+    bar_log_path = custom_dir / "model-t-bar-juju-debug.log"
     assert bar_log_path.exists()
 
     # We emit the last 1000 lines of ``juju debug-log`` for each model if tests fail.

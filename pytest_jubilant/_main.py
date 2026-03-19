@@ -130,7 +130,7 @@ class TempModelFactory:
                 last_1000_lines = "\n".join(jdl.rsplit("\n", 1000)[-1000:])
                 logging.info("%s\n%s", msg, last_1000_lines)
             if self._log_path is not None:
-                jdl_path = self._log_path / (model + "-jdl.txt")
+                jdl_path = self._log_path / (model + "-juju-debug.log")
                 jdl_path.write_text(jdl)
                 logging.info(f"Wrote full ``juju debug-log`` for model {model} to {jdl_path}")
 
