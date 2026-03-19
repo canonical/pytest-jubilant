@@ -16,3 +16,14 @@ parts:
     source: .
     build-snaps:
       - astral-uv
+
+actions:
+  exec:
+    description: Execute the provided code in the context of the action handler.
+    params:
+      code:
+        type: string
+        description: The code to execute.
+    required:
+      - code
+    additionalProperties: false
