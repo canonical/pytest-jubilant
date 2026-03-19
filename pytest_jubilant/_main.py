@@ -18,6 +18,8 @@ import jubilant
 import pytest
 import yaml
 
+_LOG_LIMIT = 1000
+
 
 def pytest_addoption(parser):
     group = parser.getgroup("jubilant")
@@ -121,22 +123,19 @@ class TempModelFactory:
         if not (print_to_stderr or self._log_path):
             return
         time.sleep(0.2)  # Wait for Juju to process logs or the latest lines might be missing
-        if self._log_path is not None:
+        if self._log_path:
             self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
-            if self._log_path is not None:
-                jdl = juju.cli("debug-log", "--replay")
-            else:
-                jdl = juju.debug_log(limit=1000)
+            jdl = juju.debug_log(limit=0 if self._log_path else _LOG_LIMIT)
             if print_to_stderr:
-                msg = f"Logging last 1000 lines of ``juju debug-log`` for model {model}:"
-                last_1000_lines = (
-                    "\n".join(jdl.rsplit("\n", 1000)[-1000:])
-                    if self._log_path is not None
+                msg = f"Logging last {_LOG_LIMIT} lines of ``juju debug-log`` for model {model}:"
+                last_n_lines = (
+                    "\n".join(jdl.rsplit("\n", _LOG_LIMIT)[-_LOG_LIMIT:])
+                    if self._log_path
                     else jdl
                 )
-                logging.info("%s\n%s", msg, last_1000_lines)
-            if self._log_path is not None:
+                logging.info("%s\n%s", msg, last_n_lines)
+            if self._log_path:
                 jdl_path = self._log_path / (model + "-juju-debug.log")
                 jdl_path.write_text(jdl)
                 logging.info(f"Wrote full ``juju debug-log`` for model {model} to {jdl_path}")

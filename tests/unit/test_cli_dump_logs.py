@@ -20,6 +20,16 @@ def test_dump_logs_not_passed(pytester):
     assert not (pytester.path / ".logs").exists()
 
 
+def test_dump_logs_empty_path_disables(pytester):
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_file=TEST_FILE)
+
+    result = pytester.runpytest("--dump-logs", "")
+    result.assert_outcomes(passed=1)
+
+    assert not (pytester.path / ".logs").exists()
+
+
 def test_dump_logs_default_path(pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
