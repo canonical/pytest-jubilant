@@ -31,15 +31,11 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - name: Install concierge
-        run: sudo snap install --classic concierge
-      - name: Prepare pack environment
-        run: sudo concierge prepare -c .github/concierge/pack.yaml
-      - name: Pack charm
-        run: charmcraft pack --platform amd64
+      - run: sudo snap install --classic concierge
+      - run: sudo concierge prepare -c .github/concierge/pack.yaml
+      - run: charmcraft pack --platform amd64
         working-directory: tests/integration/charms/simple
-      - name: Upload charm artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: charm
           path: "tests/integration/charms/simple/*.charm"
@@ -60,20 +56,16 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - name: Install concierge
-        run: sudo snap install --classic concierge
-      - name: Prepare test environment
-        run: sudo concierge prepare -c .github/concierge/test.yaml
+      - run: sudo snap install --classic concierge
+      - run: sudo concierge prepare -c .github/concierge/test.yaml
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - run: uv tool install tox --with tox-uv
-      - name: Wait for pack job
+      - run: python .github/wait-for-job.py pack-simple
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python .github/wait-for-job.py pack-simple
-      - name: Download charm
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: charm
-      - env:
+      - run: tox -e integration -- ${{ matrix.test }}
+        env:
           CHARM_PATH: ${{ github.workspace }}/simple_amd64.charm
-        run: tox -e integration -- ${{ matrix.test }}
