@@ -118,17 +118,17 @@ class TempModelFactory:
         self._models[model_name] = juju
         return juju
 
-    def _dump_all_logs(self, *, print_to_stderr: bool = False):
-        if not (print_to_stderr or self._log_path):
+    def _dump_all_logs(self, *, also_log_lines: int = 0):
+        if not (also_log_lines or self._log_path):
             return
         if self._log_path:
             self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
             jdl = juju.debug_log(limit=0 if self._log_path else _LOG_LIMIT)
-            if print_to_stderr:
-                msg = f"Logging last {_LOG_LIMIT} lines of ``juju debug-log`` for model {model}:"
+            if also_log_lines:
+                msg = f"Logging last {also_log_lines} lines of `juju debug-log` for model {model}:"
                 last_n_lines = (
-                    "\n".join(jdl.rsplit("\n", _LOG_LIMIT)[-_LOG_LIMIT:])
+                    "\n".join(jdl.rsplit("\n", also_log_lines)[-also_log_lines:])
                     if self._log_path
                     else jdl
                 )
@@ -136,7 +136,7 @@ class TempModelFactory:
             if self._log_path:
                 jdl_path = self._log_path / (model + "-juju-debug.log")
                 jdl_path.write_text(jdl)
-                logging.info(f"Wrote full ``juju debug-log`` for model {model} to {jdl_path}")
+                logging.info(f"Wrote full `juju debug-log` for model {model} to {jdl_path}")
 
     def _teardown(self, force: bool = False):
         for model, juju in self._models.items():
@@ -162,7 +162,7 @@ def temp_model_factory(request):
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    factory._dump_all_logs(print_to_stderr=bool(request.session.testsfailed))
+    factory._dump_all_logs(also_log_lines=_LOG_LIMIT if request.session.testsfailed else 0)
 
     if not request.config.getoption("--no-teardown"):
         # TODO: jubilant defaults to --force, but is that a good idea?

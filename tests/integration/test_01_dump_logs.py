@@ -22,22 +22,22 @@ def test_juju_debug_log_on_failure(pytester, tmp_path):
     print(outcomes)
     assert outcomes.get("failed")
 
-    # We emit the last 1000 lines of ``juju debug-log`` for each model if tests fail.
+    # We emit the last 1000 lines of `juju debug-log` for each model if tests fail.
     # We log the last 1000 if present, but our tests aren't very long,
     # and the linecount depends on external factors like how long we waited for active,
     # so we just assert that we logged something.
     # Model 'model-t-foo':
-    foo_msg = "Logging last 1000 lines of ``juju debug-log`` for model model-t-foo:"
+    foo_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-foo:"
     foo_lines = result.stdout.get_lines_after(f"*{foo_msg}*")  # Match with fnmatch.
-    foo_end = _index_contains(foo_lines, "Wrote full ``juju debug-log`` for model")
+    foo_end = _index_contains(foo_lines, "Wrote full `juju debug-log` for model")
     assert foo_end > 1
     foo_last_lines = foo_lines[:foo_end]
     assert _in_line("Hello, it is I! '10000'", foo_last_lines)
     assert not _in_line("Hello, it is I! '1'", foo_last_lines)  # we only log the last 1k lines
     # Model 'model-t-bar':
-    bar_msg = "Logging last 1000 lines of ``juju debug-log`` for model model-t-bar:"
+    bar_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-bar:"
     bar_lines = result.stdout.get_lines_after(f"*{bar_msg}*")  # Match with fnmatch.
-    bar_end = _index_contains(bar_lines, "Wrote full ``juju debug-log`` for model")
+    bar_end = _index_contains(bar_lines, "Wrote full `juju debug-log` for model")
     assert bar_end > 1
     bar_last_lines = bar_lines[:bar_end]
     assert _in_line("Hello, it is I! '10000'", bar_last_lines)
