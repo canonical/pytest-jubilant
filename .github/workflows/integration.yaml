@@ -3,6 +3,10 @@ name: Integration Tests
 on:
   workflow_call:
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   init:
     runs-on: ubuntu-latest
