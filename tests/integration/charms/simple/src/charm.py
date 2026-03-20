@@ -21,6 +21,7 @@ class SimpleCharm(ops.CharmBase):
     def _on_log_action(self, event: ops.ActionEvent):
         for i in range(1, 10_000 + 1):
             logger.warning("Hello, it is I! '%s'", i)
+        event.fail("Failing on purpose for tests.")
 
     def _on_collect_status(self, event: ops.CollectStatusEvent):
         event.add_status(ops.ActiveStatus())

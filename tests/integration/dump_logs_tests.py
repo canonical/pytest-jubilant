@@ -36,4 +36,3 @@ def test_deploy_and_then_fail(models: tuple[jubilant.Juju, jubilant.Juju], charm
     bar.wait(jubilant.all_active)
     foo.run("simple/0", "log")
     bar.run("simple/0", "log")
-    assert False

@@ -78,7 +78,6 @@ ignore = [
     "CPY",  # Copyright headers
     "D",  # Documentation
     "S101",  # Asserts
-    "B011",  # Don't assert False
     "B018",  # "Useless" expressions
     "SIM117",  # FIXME: use single with statement for multiple context managers
 ]
