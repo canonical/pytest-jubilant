@@ -7,71 +7,12 @@ from __future__ import annotations
 
 import pathlib
 
-import pytest
-
 pytest_plugins = ["pytester"]
-
-TEST_PASS = (pathlib.Path(__file__).parent / "dump_logs_tests_pass.py").read_text()
-TEST_FAIL = (pathlib.Path(__file__).parent / "dump_logs_tests_fail.py").read_text()
-
-
-@pytest.mark.skip()
-def test_no_dump_logs(pytester):
-    pytester.makepyfile(test_file=TEST_PASS)
-
-    result = pytester.runpytest()
-
-    outcomes = result.parseoutcomes()
-    print(outcomes)
-    assert outcomes.get("passed")
-    assert not outcomes.get("failed")
-    assert not outcomes.get("errors")
-    assert not outcomes.get("warnings")
-
-    assert not (pytester.path / ".logs").exists()
-
-
-@pytest.mark.skip()
-def test_dump_logs_default_path(pytester):
-    pytester.makepyfile(test_file=TEST_PASS)
-
-    result = pytester.runpytest("--model", "model-t", "--dump-logs")
-
-    outcomes = result.parseoutcomes()
-    print(outcomes)
-    assert outcomes.get("passed")
-    assert not outcomes.get("failed")
-    assert not outcomes.get("errors")
-    assert not outcomes.get("warnings")
-
-    foo_log_path = pytester.path / ".logs" / "model-t-foo-juju-debug.log"
-    assert foo_log_path.exists()
-    bar_log_path = pytester.path / ".logs" / "model-t-bar-juju-debug.log"
-    assert bar_log_path.exists()
-
-
-@pytest.mark.skip()
-def test_dump_logs_custom_path(pytester, tmp_path):
-    pytester.makepyfile(test_file=TEST_PASS)
-    custom_dir = tmp_path / "custom-logs"
-
-    result = pytester.runpytest("--model", "model-t", "--dump-logs", str(custom_dir))
-
-    outcomes = result.parseoutcomes()
-    print(outcomes)
-    assert outcomes.get("passed")
-    assert not outcomes.get("failed")
-    assert not outcomes.get("errors")
-    assert not outcomes.get("warnings")
-
-    foo_log_path = custom_dir / "model-t-foo-juju-debug.log"
-    assert foo_log_path.exists()
-    bar_log_path = custom_dir / "model-t-bar-juju-debug.log"
-    assert bar_log_path.exists()
 
 
 def test_juju_debug_log_on_failure(pytester, tmp_path):
-    pytester.makepyfile(test_file=TEST_FAIL)
+    test_file = (pathlib.Path(__file__).parent / "dump_logs_tests.py").read_text()
+    pytester.makepyfile(test_file=test_file)
     custom_dir = tmp_path / "custom-logs"
 
     result = pytester.runpytest("--model", "model-t", "--dump-logs", str(custom_dir))
