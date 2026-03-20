@@ -13,12 +13,11 @@ jobs:
         with:
           fetch-depth: 1
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
-      - run: uv tool install tox --with tox-uv
       - name: Collect integration tests
         id: collect
         run: |
           set -xueo pipefail
-          tests=$(tox -e integration -- --collect-only -q --no-header | grep '::' | jq -R -s '[split("\n")[] | select(. != "")]')
+          tests=$(uv run --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -R -s '[split("\n")[] | select(. != "")]')
           echo "tests=$tests" >> "$GITHUB_OUTPUT"
 
   pack-simple:
