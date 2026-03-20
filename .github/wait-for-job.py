@@ -5,6 +5,8 @@ Requires: gh CLI (pre-installed on GitHub-hosted runners)
 Permissions: actions: read  (default for GITHUB_TOKEN)
 """
 
+from __future__ import annotations
+
 import argparse
 import itertools
 import json
