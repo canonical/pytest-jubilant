@@ -48,6 +48,7 @@ jobs:
     needs: [init]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         test: ${{ fromJson(needs.init.outputs.tests) }}
     steps:
