@@ -34,10 +34,6 @@ def test_deploy_and_then_fail(models: tuple[jubilant.Juju, jubilant.Juju], charm
     bar.deploy(charm)
     foo.wait(jubilant.all_active, timeout=900)
     bar.wait(jubilant.all_active)
-    code = """
-for i in range(1, 10_000 + 1):
-    logger.warning("Hello, it is I! '%s'", i)
-"""
-    foo.run("simple/0", "exec", {"code": code})
-    bar.run("simple/0", "exec", {"code": code})
+    foo.run("simple/0", "log")
+    bar.run("simple/0", "log")
     assert False
