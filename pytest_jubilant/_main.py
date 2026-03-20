@@ -11,6 +11,7 @@ import logging
 import secrets
 import shlex
 import subprocess
+import time
 from pathlib import Path
 
 import jubilant
@@ -121,6 +122,7 @@ class TempModelFactory:
     def _dump_all_logs(self, *, also_log_lines: int = 0):
         if not (also_log_lines or self._log_path):
             return
+        time.sleep(0.2)  # Wait for Juju to process logs or the latest lines might be missing
         if self._log_path:
             self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
