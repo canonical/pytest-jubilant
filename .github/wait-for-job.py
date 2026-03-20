@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright 2026 Canonical Ltd.
+# See LICENSE file for details.
 """Wait for a named job in the current workflow run to complete before proceeding.
 
 Requires: gh CLI (pre-installed on GitHub-hosted runners)
@@ -11,13 +13,13 @@ import argparse
 import itertools
 import json
 import os
-import subprocess
+import subprocess  # noqa: S404
 import sys
 import time
 from typing import Any
 
 
-def main() -> None:
+def _main() -> None:
     parser = argparse.ArgumentParser(description="Wait for a GitHub Actions job to complete.")
     parser.add_argument("job_name", help="Name of the job to wait for")
     job_name = parser.parse_args().job_name
@@ -34,14 +36,14 @@ def main() -> None:
             time.sleep(interval)
         print(f"Running {cmd}:")
         try:
-            raw = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE)
+            raw = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE)  # noqa: S603
         except subprocess.CalledProcessError as e:
             print(f"  Warning: gh api error ({e.stderr}).")
             continue
         jobs = [job for page in json.loads(raw) for job in page["jobs"]]
-        job = find_job(jobs, name=job_name)
+        job = _find_job(jobs, name=job_name)
         if job is None:
-            print(f"  Job not visible yet!")
+            print("  Job not visible yet!")
             continue
         status = job["status"]  # queued | in_progress | completed
         print(f"  Job running with status={status}")
@@ -54,7 +56,8 @@ def main() -> None:
         sys.exit(f"Job {job_name!r} ended with: {conclusion}")
 
 
-def find_job(jobs: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
+def _find_job(jobs: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
+    """Return the first job whose final '/' separated component is exactly 'name'."""
     for job in jobs:
         if job["name"].rsplit("/", 1)[-1].strip() == name:
             return job
@@ -62,4 +65,4 @@ def find_job(jobs: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
 
 
 if __name__ == "__main__":
-    main()
+    _main()

@@ -17,6 +17,7 @@ jobs:
       - name: Collect integration tests
         id: collect
         run: |
+          set -xueo pipefail
           tests=$(tox -e integration -- --collect-only -q --no-header | grep '::' | jq -R -s '[split("\n")[] | select(. != "")]')
           echo "tests=$tests" >> "$GITHUB_OUTPUT"
 
