@@ -124,7 +124,7 @@ class TempModelFactory:
         if self._log_path:
             self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
-            jdl = juju.debug_log(limit=0 if self._log_path else _LOG_LIMIT)
+            jdl = juju.debug_log(limit=0 if self._log_path else also_log_lines)
             if also_log_lines:
                 msg = f"Logging last {also_log_lines} lines of `juju debug-log` for model {model}:"
                 last_n_lines = (
