@@ -23,7 +23,11 @@ jobs:
           tests=$(uv run --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -Rnc '[inputs]')
           echo "tests=$tests" >> "$GITHUB_OUTPUT"
 
-  pack-simple:
+  pack:
+    strategy:
+      fail-fast: false
+      matrix:
+        charm: ["simple"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,12 +36,18 @@ jobs:
       - run: sudo snap install --classic concierge
       - run: sudo concierge prepare -c .github/concierge/pack.yaml
       - run: charmcraft pack --platform amd64
-        working-directory: tests/integration/charms/simple
+        working-directory: tests/integration/charms/${{ matrix.charm }}
       - uses: actions/upload-artifact@v4
         with:
           name: charm
-          path: "tests/integration/charms/simple/*.charm"
+          path: "tests/integration/charms/${{ matrix.charm }}/*.charm"
           if-no-files-found: error
+
+  needs-pack:
+    needs: [pack]
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 0
 
   test:
     permissions:
@@ -57,7 +67,7 @@ jobs:
       - run: sudo concierge prepare -c .github/concierge/test.yaml
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - run: uv tool install tox --with tox-uv
-      - run: python .github/wait-for-job.py pack-simple
+      - run: python .github/wait-for-job.py needs-pack
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/download-artifact@v4
