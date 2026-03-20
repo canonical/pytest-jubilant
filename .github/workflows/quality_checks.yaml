@@ -31,8 +31,17 @@ jobs:
       - run: uv tool install tox --with tox-uv
       - run: tox -e unit
 
-  integration:
+  run-integration:
     uses: ./.github/workflows/integration.yaml
     permissions:
       actions: read
       contents: read
+
+  integration:
+    needs: [run-integration]
+    if: ${{ !cancelled() }}  # run even if tests are skipped or failed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any tests failed
+        if: ${{ needs.run-integration.result != 'success' }}
+        run: exit 1
