@@ -126,5 +126,5 @@ def _in_line(target: str, lines: list[str]) -> bool:
     match = [line for line in lines if target in line]
     if not match:
         return False
-    assert len(match) == 1, f"Expected only one match for {target} in {lines}"
+    assert len(match) == 1, f"Expected only one match for {target} in but found {match}"
     return True
