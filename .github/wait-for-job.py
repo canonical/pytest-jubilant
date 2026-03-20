@@ -56,7 +56,7 @@ def main() -> None:
 
 def find_job(jobs: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
     for job in jobs:
-        if job["name"] == name:
+        if job["name"].rsplit("/", 1)[-1].strip() == name:
             return job
     return None
 

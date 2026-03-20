@@ -10,7 +10,6 @@ on:
 
 jobs:
   lint:
-    name: Linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,7 +21,6 @@ jobs:
       - run: tox -e lint
 
   unit:
-    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,7 +32,6 @@ jobs:
       - run: tox -e unit
 
   integration:
-    name: Integration Tests
     uses: ./.github/workflows/integration.yaml
     permissions:
       actions: read

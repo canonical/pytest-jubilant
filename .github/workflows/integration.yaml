@@ -5,7 +5,6 @@ on:
 
 jobs:
   init:
-    name: Collect tests
     runs-on: ubuntu-latest
     outputs:
       tests: ${{ steps.collect.outputs.tests }}
@@ -18,12 +17,14 @@ jobs:
       - name: Collect integration tests
         id: collect
         run: |
-          tests=$(tox -e integration -- --collect-only -q --no-header 2>&1 | grep '::' | jq -R -s '[split("\n")[] | select(. != "")]')
+          tests=$(tox -e integration -- --collect-only -q --no-header | grep '::' | jq -R -s '[split("\n")[] | select(. != "")]')
           echo "tests=$tests" >> "$GITHUB_OUTPUT"
 
-  pack:
-    name: Pack charm
+  pack-simple:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests/integration/charms/simple
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,7 +34,7 @@ jobs:
       - name: Prepare crafts environment
         run: sudo concierge prepare -p crafts
       - name: Pack charm
-        run: charmcraft pack -p tests/integration/charms/simple
+        run: charmcraft pack --platform amd64
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
@@ -41,7 +42,6 @@ jobs:
           path: "*.charm"
 
   test:
-    name: ${{ matrix.test }}
     needs: [init]
     runs-on: ubuntu-latest
     strategy:
@@ -60,7 +60,7 @@ jobs:
       - name: Wait for pack job
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python .github/wait-for-job.py "Integration Tests / Pack charm"
+        run: python .github/wait-for-job.py pack-simple
       - name: Download charm
         uses: actions/download-artifact@v4
         with:
