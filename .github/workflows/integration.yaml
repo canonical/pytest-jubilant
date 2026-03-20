@@ -22,9 +22,6 @@ jobs:
 
   pack-simple:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tests/integration/charms/simple
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,11 +32,13 @@ jobs:
         run: sudo concierge prepare --preset-file .github/concierge-presets/pack.yaml
       - name: Pack charm
         run: charmcraft pack --platform amd64
+        working-directory: tests/integration/charms/simple
       - name: Upload charm artifact
         uses: actions/upload-artifact@v4
         with:
           name: charm
-          path: "*.charm"
+          path: "tests/integration/charms/simple/*.charm"
+          if-no-files-found: error
 
   test:
     needs: [init]
