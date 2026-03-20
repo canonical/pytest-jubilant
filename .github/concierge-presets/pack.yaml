@@ -1,0 +1,9 @@
+juju:
+  disable: true
+providers:
+  lxd:
+    enable: true
+    bootstrap: false
+host:
+  snaps:
+    charmcraft:

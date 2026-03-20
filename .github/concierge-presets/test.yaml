@@ -1,0 +1,11 @@
+juju:
+  model-defaults:
+    test-mode: "true"
+    automatically-retry-hooks: "false"
+providers:
+  lxd:
+    enable: true
+    bootstrap: true
+host:
+  snaps:
+    charmcraft:  # FIXME: drop when we drop the pack(...) function
