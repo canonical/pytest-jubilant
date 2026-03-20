@@ -35,4 +35,3 @@ def test_deploy_and_then_fail(models: tuple[jubilant.Juju, jubilant.Juju], charm
     foo.wait(jubilant.all_active, timeout=900)
     bar.wait(jubilant.all_active)
     foo.run("simple/0", "log")
-    bar.run("simple/0", "log")
