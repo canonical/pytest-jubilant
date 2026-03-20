@@ -20,7 +20,7 @@ jobs:
         id: collect
         run: |
           set -xueo pipefail
-          tests=$(uv run --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -R -s -c '[split("\n")[] | select(. != "")]')
+          tests=$(uv run --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -Rnc '[inputs]')
           echo "tests=$tests" >> "$GITHUB_OUTPUT"
 
   pack-simple:
