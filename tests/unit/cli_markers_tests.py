@@ -25,12 +25,18 @@ def _mock_destroy(self, model, *args: Any, **kwargs: Any):
     _append(Path("destroyed.txt"), model)
 
 
-@pytest.fixture(scope="module", autouse=True)
+# Session scoped fixture so patching wraps our module scoped autouse fixture.
+@pytest.fixture(scope="session", autouse=True)
 def _patch_model_operations():
     with pytest.MonkeyPatch.context() as monkeypatch:
         monkeypatch.setattr(jubilant.Juju, "add_model", _mock_add)
         monkeypatch.setattr(jubilant.Juju, "destroy_model", _mock_destroy)
         yield
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _fixture(temp_model_factory: pytest_jubilant.TempModelFactory):
+    temp_model_factory.get_juju("autouse-module-scoped-fixture")
 
 
 @pytest.mark.setup
