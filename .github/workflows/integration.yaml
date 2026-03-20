@@ -68,5 +68,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: charm
-          path: tests/integration/charms/simple
-      - run: tox -e integration -- ${{ matrix.test }}
+      - env:
+          CHARM_PATH: ${{ github.workspace }}/simple_amd64.charm
+        run: tox -e integration -- ${{ matrix.test }}
