@@ -30,12 +30,6 @@ def pytest_addoption(parser):
         help="Juju model name to target.",
     )
     group.addoption(
-        "--keep-models",
-        action="store_true",
-        default=False,
-        help="Skip model teardown.",
-    )
-    group.addoption(
         "--no-setup",
         action="store_true",
         default=False,
@@ -56,9 +50,11 @@ def pytest_addoption(parser):
     group.addoption(
         "--dump-logs",
         action="store",
-        default=DEFAULT_JDL_DUMP_PATH,
-        help="Directory in which to dump any juju debug-log for any model prior to tearing it down. "
-        "Set to empty string to disable the behaviour.",
+        nargs="?",
+        const=DEFAULT_JDL_DUMP_PATH,
+        default=None,
+        help="Dump the juju debug-log for each model prior to teardown. "
+        f"The default dump location is {DEFAULT_JDL_DUMP_PATH!r}.",
     )
 
 
@@ -67,24 +63,26 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "teardown: tests that tear down some parts of the environment."
     )
+    if config.getoption("--no-setup") and not config.getoption("--model"):
+        msg = (
+            "--no-setup cannot be specified without --model"
+            ", because --no-setup will skip model creation"
+            ", and surely your tests need a model."
+        )
+        if not config.getoption("--no-teardown"):
+            msg += (
+                "\nNote that unless you specify --no-teardown"
+                ", the model(s) identified by --model *will* be torn down!"
+            )
+        raise pytest.UsageError(msg)
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items):
-    def _set_keep_models(val: bool = True):
-        # TODO: less hacky way to do this?
-        optname = config._opt2dest.get("--keep-models", "--keep-models")
-        config.option.__setattr__(optname, val)
-
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
             if "teardown" in item.keywords:
                 item.add_marker(skipper)
-
-        if config.getoption("--keep-models"):
-            logging.warning("--no-teardown implies --keep-models")
-        else:
-            _set_keep_models(True)
 
     if config.getoption("--no-setup"):
         skipper = pytest.mark.skip(reason="--no-setup provided.")
@@ -100,12 +98,14 @@ class TempModelFactory:
         self,
         prefix: str,
         randbits: str | None = None,
-        check_models_unique: bool = True,
+        allow_existing_model: bool = False,
+        add_model: bool = False,
     ):
         self.prefix = prefix
         self.randbits = randbits
         self._models: dict[str, jubilant.Juju] = {}
-        self._check_models_unique = check_models_unique
+        self._allow_existing_model = allow_existing_model
+        self._add_model = add_model
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
         model_name = "-".join(filter(None, (self.prefix, self.randbits, suffix)))
@@ -116,14 +116,17 @@ class TempModelFactory:
             )
 
         juju = jubilant.Juju(model=model_name)
-        try:
-            juju.add_model(model_name)
-        except jubilant.CLIError as e:
-            # If --model is set (_check_models_unique is False), then the user wants collisions.
-            # If the name is randomly generated, the chance of colliding with another
-            # randomly generated model that wasn't torn down is tiny, but still present.
-            if "already exists on this k8s cluster" in e.args[1] and self._check_models_unique:
-                raise
+        if self._add_model:
+            try:
+                juju.add_model(model_name)
+            except jubilant.CLIError as e:
+                # If --model is set (_allow_existing_model is True), then the user wants collisions.
+                # If the name is randomly generated, the chance of colliding with another
+                # randomly generated model that wasn't torn down is tiny, so we we'll just raise.
+                if self._allow_existing_model and "already exists" in (e.stderr or ""):
+                    pass
+                else:
+                    raise
 
         self._models[model_name] = juju
         return juju
@@ -151,7 +154,10 @@ def temp_model_factory(request):
         prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
         randbits = secrets.token_hex(4)
     factory = TempModelFactory(
-        prefix=prefix, randbits=randbits, check_models_unique=not user_model
+        prefix=prefix,
+        randbits=randbits,
+        allow_existing_model=user_model,
+        add_model=not request.config.getoption("--no-setup"),
     )
 
     yield factory
@@ -160,7 +166,7 @@ def temp_model_factory(request):
     if dump_logs := request.config.getoption("--dump-logs"):
         factory._dump_all_logs(Path(dump_logs))
 
-    if not request.config.getoption("--keep-models"):
+    if not request.config.getoption("--no-teardown"):
         # TODO: jubilant defaults to --force, but is that a good idea?
         factory._teardown(force=True)
 

@@ -30,5 +30,7 @@ def cli_mock():
 
 def _patch_subprocess_run():
     mm = unittest.mock.MagicMock()
-    mm.return_value = unittest.mock.MagicMock(stdout="output", stderr="error")
+    mm.return_value = unittest.mock.MagicMock(
+        stdout="stdout patched by conftest.py", stderr="stderr patched by conftest.py"
+    )
     return unittest.mock.patch("subprocess.run", new=mm)

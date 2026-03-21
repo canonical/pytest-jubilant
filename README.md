@@ -7,7 +7,7 @@ And some cool stuff on top.
 
 ## `juju` 
 This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
-Cfr. the `--model`, `--keep-models`, and `--no-teardown` options below for more.
+See also the `--model` and `--no-teardown` options below, which modify its behavior.
 Usage:
 
 ```python
@@ -50,7 +50,6 @@ This test will spin up two temporary models, one called `test-cmr-<randomhex>`, 
 and tear them down on context exit.
 
 This fixture can be used with the options described below:
-- `pytest tests/test_cmr.py --keep-models` will skip model teardown for all generated models.
 - `pytest tests/test_cmr.py --model test-cmr-<randomhex>` will use `test-cmr-<randomhex>` as base name, and the suffixes you defined in the fixtures will give all generated models predictable names, which means that the tests will reuse the existing models (if found) or create new ones with those names.
 - `pytest tests/test_cmr.py --switch` will switch you to the 'base' model `test-cmr-<randomhex>` (not to one of the suffixed ones!).
 
@@ -84,16 +83,11 @@ Usage:
     pytest ./tests/integration -k test-something --model mymodel --switch  
     # will switch you to the `mymodel` model as soon as it's created 
 
-## `--keep-models`
-Skip destroying the newly generated models when the tests are done. 
-Usage:
-
-    pytest ./tests/integration --keep-models  
-
-
 ## `--no-teardown`
-Skip all tests marked with `teardown` (**and skip destroying the models**! this flag implies the `--keep-models` one).
+Skip all tests marked with `teardown` and skip destroying the models.
 Useful to inspect the state of a model after a (failed) test run.
+Warning: The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
+Be sure to use `--no-teardown` instead.
 
 Usage:
     pytest ./tests/integration --no-teardown 
