@@ -20,7 +20,7 @@ import pytest
 import yaml
 
 _LOG_LIMIT = 1000
-_LOG_WAIT = 0.1
+_LOG_WAIT = 2.0
 
 
 def pytest_addoption(parser):
