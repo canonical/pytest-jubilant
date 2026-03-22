@@ -12,4 +12,4 @@ def simple_charm():
     charm_path = pathlib.Path(charm_path)
     if not charm_path.exists():
         raise FileNotFoundError(f"charm not found at {charm_path}")
-    return charm_path
+    return charm_path.absolute()
