@@ -22,7 +22,7 @@ def models(temp_model_factory: pytest_jubilant.TempModelFactory):
 
 @pytest.fixture(scope="module")
 def charm():
-    charm_path = pathlib.Path(os.environ["CHARM_PATH"])
+    charm_path = pathlib.Path(os.environ["SIMPLE_CHARM_PATH"])
     assert charm_path.is_file()
     yield charm_path
 

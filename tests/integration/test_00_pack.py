@@ -37,4 +37,4 @@ def test_pack_ok(local_tmp_path: pathlib.Path):
     shutil.copytree(FILE.parent / "charms" / "simple", local_tmp_path, dirs_exist_ok=True)
     charm = pytest_jubilant.pack(local_tmp_path)
     assert charm.suffix == ".charm"
-    os.environ["CHARM_PATH"] = str(charm)
+    os.environ["SIMPLE_CHARM_PATH"] = str(charm)
