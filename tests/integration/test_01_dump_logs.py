@@ -7,10 +7,13 @@ from __future__ import annotations
 
 import pathlib
 
+import pytest
+
 pytest_plugins = ["pytester"]
 
 
-def test_juju_debug_log_on_failure(pytester, tmp_path):
+@pytest.mark.parametrize("_", range(100))
+def test_juju_debug_log_on_failure(_, pytester, tmp_path):
     test_file = (pathlib.Path(__file__).parent / "dump_logs_tests.py").read_text()
     pytester.makepyfile(test_file=test_file)
     custom_dir = tmp_path / "custom-logs"
