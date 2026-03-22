@@ -13,6 +13,7 @@ import shlex
 import subprocess
 import time
 from pathlib import Path
+from typing import Callable
 
 import jubilant
 import pytest
@@ -160,8 +161,13 @@ class TempModelFactory:
             juju.destroy_model(model, destroy_storage=True, force=force)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def _sleep_once():
+    """Return a function that sleeps when called for the first time.
+
+    The returned function does nothing on repeated calls.
+    This allows fixtures of the same scope to ensure a single sleep happens before teardown.
+    """
     slept = False
 
     def sleep():
@@ -174,7 +180,7 @@ def _sleep_once():
 
 
 @pytest.fixture(scope="module")
-def temp_model_factory(request, _sleep_once):
+def temp_model_factory(request: pytest.FixtureRequest, _sleep_once: Callable[[], None]):
     user_model = request.config.getoption("--model")
     if user_model:
         prefix = user_model
@@ -204,7 +210,7 @@ def temp_model_factory(request, _sleep_once):
 
 
 @pytest.fixture(scope="module")
-def juju(request, temp_model_factory):
+def juju(request: pytest.Request, temp_model_factory: TempModelFactory):
     juju = temp_model_factory.get_juju("")
     if request.config.getoption("--switch"):
         juju.cli("switch", juju.model, include_model=False)
