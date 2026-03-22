@@ -12,6 +12,7 @@ import secrets
 import shlex
 import subprocess
 import time
+import typing
 from pathlib import Path
 from typing import Callable
 
@@ -162,7 +163,7 @@ class TempModelFactory:
 
 
 @pytest.fixture(scope="module")
-def _sleep_once():
+def _sleep_once():  # pyright: ignore[reportUnusedFunction]
     """Return a function that sleeps when called for the first time.
 
     The returned function does nothing on repeated calls.
@@ -181,18 +182,19 @@ def _sleep_once():
 
 @pytest.fixture(scope="module")
 def temp_model_factory(request: pytest.FixtureRequest, _sleep_once: Callable[[], None]):
-    user_model = request.config.getoption("--model")
+    user_model = typing.cast("str | None", request.config.getoption("--model"))
     if user_model:
         prefix = user_model
         randbits = None
     else:
-        prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
+        module_name = typing.cast("str", request.module.__name__)  # type: ignore
+        prefix = (module_name.rpartition(".")[-1]).replace("_", "-")
         randbits = secrets.token_hex(4)
     factory = TempModelFactory(
         prefix=prefix,
         randbits=randbits,
-        allow_existing_model=user_model,
-        log_path=request.config.getoption("--dump-logs"),
+        allow_existing_model=bool(user_model),
+        log_path=typing.cast("Path | None", request.config.getoption("--dump-logs")),
         add_model=not request.config.getoption("--no-setup"),
     )
 
@@ -202,17 +204,18 @@ def temp_model_factory(request: pytest.FixtureRequest, _sleep_once: Callable[[],
     also_log_lines = _LOG_LIMIT if request.session.testsfailed else 0
     if also_log_lines or request.config.getoption("--dump-logs"):
         _sleep_once()  # Wait for Juju to process logs or the latest lines might be missing
-    factory._dump_all_logs(also_log_lines=also_log_lines)
+    factory._dump_all_logs(also_log_lines=also_log_lines)  # pyright: ignore[reportPrivateUsage]
 
     if not request.config.getoption("--no-teardown"):
         # TODO: jubilant defaults to --force, but is that a good idea?
-        factory._teardown(force=True)
+        factory._teardown(force=True)  # pyright: ignore[reportPrivateUsage]
 
 
 @pytest.fixture(scope="module")
-def juju(request: pytest.Request, temp_model_factory: TempModelFactory):
+def juju(request: pytest.FixtureRequest, temp_model_factory: TempModelFactory):
     juju = temp_model_factory.get_juju("")
     if request.config.getoption("--switch"):
+        assert juju.model  # noqa: S101
         juju.cli("switch", juju.model, include_model=False)
     return juju
 

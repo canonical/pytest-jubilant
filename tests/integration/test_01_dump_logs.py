@@ -6,6 +6,7 @@ Named to run after the pack tests, as the test files use the packed charm.
 from __future__ import annotations
 
 import pathlib
+from typing import Iterable
 
 import pytest
 
@@ -17,7 +18,7 @@ def test_juju_debug_log_on_failure(_, pytester: pytest.Pytester, tmp_path: pathl
     test_file1 = (pathlib.Path(__file__).parent / "dump_logs_tests.py").read_text()
     test_file2 = test_file1.replace('get_juju("foo1")', 'get_juju("foo2")')
     test_file2 = test_file2.replace('get_juju("bar1")', 'get_juju("bar2")')
-    pytester.makepyfile(test_file1=test_file1, test_file2=test_file2)
+    pytester.makepyfile(test_file1=test_file1, test_file2=test_file2)  # type: ignore
     custom_dir = tmp_path / "custom-logs"
 
     result = pytester.runpytest("--model", "model-t", "--dump-logs", str(custom_dir))
@@ -94,14 +95,14 @@ def test_juju_debug_log_on_failure(_, pytester: pytest.Pytester, tmp_path: pathl
     assert not _in_line("Hello, it is I!", bar2_full_log_lines)
 
 
-def _index_contains(lines: list[str], target: str) -> int:
+def _index_contains(lines: Iterable[str], target: str) -> int:
     for i, line in enumerate(lines):
         if target in line:
             return i
     raise ValueError(f"No match for {target!r} in {lines}")
 
 
-def _in_line(target: str, lines: list[str]) -> bool:
+def _in_line(target: str, lines: Iterable[str]) -> bool:
     match = [line for line in lines if target in line]
     if not match:
         return False
