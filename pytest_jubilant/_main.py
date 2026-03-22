@@ -19,6 +19,7 @@ import pytest
 import yaml
 
 _LOG_LIMIT = 1000
+_LOG_WAIT = 0.1
 
 
 def pytest_addoption(parser):
@@ -137,7 +138,6 @@ class TempModelFactory:
     def _dump_all_logs(self, *, also_log_lines: int = 0):
         if not (also_log_lines or self._log_path):
             return
-        time.sleep(0.0)  # Wait for Juju to process logs or the latest lines might be missing
         if self._log_path:
             self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
@@ -160,8 +160,21 @@ class TempModelFactory:
             juju.destroy_model(model, destroy_storage=True, force=force)
 
 
+@pytest.fixture(scope="session")
+def _sleep_once():
+    slept = False
+
+    def sleep():
+        nonlocal slept
+        if not slept:
+            time.sleep(_LOG_WAIT)
+            slept = True
+
+    return sleep
+
+
 @pytest.fixture(scope="module")
-def temp_model_factory(request):
+def temp_model_factory(request, _sleep_once):
     user_model = request.config.getoption("--model")
     if user_model:
         prefix = user_model
@@ -180,7 +193,10 @@ def temp_model_factory(request):
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    factory._dump_all_logs(also_log_lines=_LOG_LIMIT if request.session.testsfailed else 0)
+    also_log_lines = _LOG_LIMIT if request.session.testsfailed else 0
+    if also_log_lines or request.config.getoption("--dump-logs"):
+        _sleep_once()  # Wait for Juju to process logs or the latest lines might be missing
+    factory._dump_all_logs(also_log_lines=also_log_lines)
 
     if not request.config.getoption("--no-teardown"):
         # TODO: jubilant defaults to --force, but is that a good idea?
