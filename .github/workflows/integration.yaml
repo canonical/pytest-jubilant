@@ -10,24 +10,32 @@ jobs:
   init:
     runs-on: ubuntu-latest
     outputs:
-      tests: ${{ steps.collect.outputs.tests }}
+      tests: ${{ steps.tests.outputs.result }}
+      charms: ${{ steps.charms.outputs.result }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - name: Collect integration tests
-        id: collect
+        id: tests
         run: |
           set -xueo pipefail
-          tests=$(uv run --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -Rnc '[inputs]')
-          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+          result=$(uv run --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -Rnc '[inputs]')
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+      - name: Collect charm directories
+        id: charms
+        run: |
+          set -xueo pipefail
+          result=$(find tests/integration/charms -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | jq -Rnc '[inputs]')
+          echo "result=$result" >> "$GITHUB_OUTPUT"
 
   pack:
+    needs: [init]
     strategy:
       fail-fast: false
       matrix:
-        charm: ["simple"]
+        charm: ${{ fromJson(needs.init.outputs.charms) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +47,7 @@ jobs:
         working-directory: tests/integration/charms/${{ matrix.charm }}
       - uses: actions/upload-artifact@v4
         with:
-          name: charm
+          name: ${{ matrix.charm }}-charm
           path: "tests/integration/charms/${{ matrix.charm }}/*.charm"
           if-no-files-found: error
 
@@ -72,7 +80,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/download-artifact@v4
         with:
-          name: charm
+          pattern: "*-charm"
+          merge-multiple: true
+      - name: Set *CHARM_PATH env vars
+        run: |
+          for charm in *.charm; do
+            name=${charm%%_*}  # strip from first underscore to end: simple_amd64.charm -> simple
+            name=${name//-/_}  # replace hyphens with underscores: my-charm -> my_charm
+            # uppercase and append suffix: simple -> SIMPLE_CHARM_PATH
+            echo "${name^^}_CHARM_PATH=${{ github.workspace }}/${charm}" >> "$GITHUB_ENV"
+          done
       - run: tox -e integration -- ${{ matrix.test }}
-        env:
-          CHARM_PATH: ${{ github.workspace }}/simple_amd64.charm
