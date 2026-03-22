@@ -15,8 +15,8 @@ if typing.TYPE_CHECKING:
 
 @pytest.fixture(scope="module")
 def models(temp_model_factory: pytest_jubilant.TempModelFactory):
-    foo = temp_model_factory.get_juju("foo")
-    bar = temp_model_factory.get_juju("bar")
+    foo = temp_model_factory.get_juju("foo1")
+    bar = temp_model_factory.get_juju("bar1")
     yield foo, bar
 
 
