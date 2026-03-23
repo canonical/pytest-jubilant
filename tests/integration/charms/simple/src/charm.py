@@ -10,9 +10,9 @@ import ops
 class SimpleCharm(ops.CharmBase):
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
-        framework.observe(self.on.collect_status, self._on_collect_status)
+        framework.observe(self.on.collect_unit_status, self._on_collect_unit_status)
 
-    def _on_collect_status(self, event: ops.CollectStatusEvent):
+    def _on_collect_unit_status(self, event: ops.CollectStatusEvent):
         event.add_status(ops.ActiveStatus())
 
 
