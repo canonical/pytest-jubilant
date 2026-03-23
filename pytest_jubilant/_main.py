@@ -207,9 +207,11 @@ def temp_model_factory(request: pytest.FixtureRequest, _sleep_once: Callable[[],
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    also_log_lines = _LOG_LIMIT if request.session.testsfailed else 0
-    if also_log_lines or request.config.getoption("--dump-logs"):
+    if request.session.testsfailed:
+        also_log_lines = _LOG_LIMIT
         _sleep_once()  # Wait for Juju to process logs or the latest lines might be missing
+    else:
+        also_log_lines = 0
     factory._dump_all_logs(also_log_lines=also_log_lines)  # pyright: ignore[reportPrivateUsage]
 
     if not request.config.getoption("--no-teardown"):
