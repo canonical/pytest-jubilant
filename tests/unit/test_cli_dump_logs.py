@@ -62,6 +62,7 @@ def test_dump_logs_custom_path(pytester, tmp_path):
 
 
 def test_juju_debug_log_on_failure(pytester, tmp_path):
+    pytester.makeconftest(CONFTEST)
     pytester.makepyfile(
         test_file="""
 def test_fail(temp_model_factory):
@@ -71,7 +72,7 @@ def test_fail(temp_model_factory):
     )
     custom_dir = tmp_path / "custom-logs"
 
-    result = pytester.runpytest("--model", "model-t", "--dump-logs", str(custom_dir))
+    result = pytester.runpytest_subprocess("--model", "model-t", "--dump-logs", str(custom_dir))
 
     # We expect this session to fail.
     result.assert_outcomes(failed=1)
@@ -80,7 +81,7 @@ def test_fail(temp_model_factory):
     foo_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-foo:"
     foo_lines = result.stdout.get_lines_after(f"*{foo_msg}*")  # Match with fnmatch.
     assert foo_lines[0] == "stdout patched by conftest.py"  # Mocked call to Juju CLI.
-    assert "Wrote full `juju debug-log` for model" in foo_lines[1]
+    assert foo_lines[1] == "--- end of `juju debug-log` for model model-t-foo ---"
 
     # The full logs are still written on failure with --dump-logs.
     foo_log_path = custom_dir / "model-t-foo-juju-debug.log"

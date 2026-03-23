@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import secrets
+import sys
 import time
 import typing
 from pathlib import Path
@@ -148,7 +149,8 @@ class TempModelFactory:
                     if self._log_path
                     else jdl
                 )
-                logging.info("%s\n%s", msg, last_n_lines)
+                end_msg = f"--- end of `juju debug-log` for model {model} ---"
+                print(f"{msg}\n{last_n_lines}\n{end_msg}", file=sys.stderr)
             if self._log_path:
                 jdl_path = self._log_path / (model + "-juju-debug.log")
                 jdl_path.write_text(jdl)

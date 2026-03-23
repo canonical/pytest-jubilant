@@ -22,7 +22,7 @@ def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: pathlib.
     pytester.makepyfile(test_file1=test_file1, test_file2=test_file2)  # type: ignore
     custom_dir = tmp_path / "custom-logs"
 
-    result = pytester.runpytest("--model", "model-t", "--dump-logs", str(custom_dir))
+    result = pytester.runpytest_subprocess("--model", "model-t", "--dump-logs", str(custom_dir))
 
     # We expect this session to fail.
     outcomes = result.parseoutcomes()
@@ -34,7 +34,9 @@ def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: pathlib.
     # Model 'model-t-foo1': emits 10k lines of logs in an action and then fails.
     foo1_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-foo1:"
     foo1_lines = result.stdout.get_lines_after(f"*{foo1_msg}*")  # Match with fnmatch.
-    foo1_end = _index_contains(foo1_lines, "Wrote full `juju debug-log` for model")
+    foo1_end = _index_contains(
+        foo1_lines, "--- end of `juju debug-log` for model model-t-foo1 ---"
+    )
     assert foo1_end == 1000
     foo1_last_lines = foo1_lines[:foo1_end]
     assert _in_line("Hello, it is I! '10000'", foo1_last_lines)
@@ -43,7 +45,9 @@ def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: pathlib.
     # Model 'model-t-bar1': cleaned up when the tests exit after the action failed.
     bar1_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-bar1:"
     bar1_lines = result.stdout.get_lines_after(f"*{bar1_msg}*")  # Match with fnmatch.
-    bar1_end = _index_contains(bar1_lines, "Wrote full `juju debug-log` for model")
+    bar1_end = _index_contains(
+        bar1_lines, "--- end of `juju debug-log` for model model-t-bar1 ---"
+    )
     assert bar1_end > 1
     assert bar1_end < 1000  # We didn't run the log action so there aren't that many log lines.
     bar1_last_lines = bar1_lines[:bar1_end]
@@ -67,7 +71,9 @@ def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: pathlib.
     # Model 'model-t-foo2': emits 10k lines of logs in an action and then fails.
     foo2_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-foo2:"
     foo2_lines = result.stdout.get_lines_after(f"*{foo2_msg}*")  # Match with fnmatch.
-    foo2_end = _index_contains(foo2_lines, "Wrote full `juju debug-log` for model")
+    foo2_end = _index_contains(
+        foo2_lines, "--- end of `juju debug-log` for model model-t-foo2 ---"
+    )
     assert foo2_end == 1000
     foo2_last_lines = foo2_lines[:foo2_end]
     assert _in_line("Hello, it is I! '10000'", foo2_last_lines)
@@ -76,7 +82,9 @@ def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: pathlib.
     # Model 'model-t-bar2': cleaned up when the tests exit after the action failed.
     bar2_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-bar2:"
     bar2_lines = result.stdout.get_lines_after(f"*{bar2_msg}*")  # Match with fnmatch.
-    bar2_end = _index_contains(bar2_lines, "Wrote full `juju debug-log` for model")
+    bar2_end = _index_contains(
+        bar2_lines, "--- end of `juju debug-log` for model model-t-bar2 ---"
+    )
     assert bar2_end > 1
     assert bar2_end < 1000  # We didn't run the log action so there aren't that many log lines.
     bar2_last_lines = bar2_lines[:bar2_end]
