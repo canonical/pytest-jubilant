@@ -15,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 class SimpleCharm(ops.CharmBase):
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
-        framework.observe(self.on.collect_unit_status, self._on_collect_status)
+        framework.observe(self.on.collect_unit_status, self._on_collect_unit_status)
         framework.observe(self.on["log"].action, self._on_log_action)
 
     def _on_log_action(self, event: ops.ActionEvent):
@@ -23,7 +23,7 @@ class SimpleCharm(ops.CharmBase):
             logger.warning("Hello, it is I! '%s'", i)
         event.fail("Failing on purpose for tests.")
 
-    def _on_collect_status(self, event: ops.CollectStatusEvent):
+    def _on_collect_unit_status(self, event: ops.CollectStatusEvent):
         event.add_status(ops.ActiveStatus())
 
 

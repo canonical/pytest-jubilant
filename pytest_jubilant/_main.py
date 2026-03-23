@@ -6,11 +6,8 @@
 
 from __future__ import annotations
 
-import dataclasses
 import logging
 import secrets
-import shlex
-import subprocess
 import time
 import typing
 from pathlib import Path
@@ -218,56 +215,6 @@ def juju(request: pytest.FixtureRequest, temp_model_factory: TempModelFactory):
         assert juju.model  # noqa: S101
         juju.cli("switch", juju.model, include_model=False)
     return juju
-
-
-@dataclasses.dataclass
-class _Result:
-    charm: Path
-    resources: dict[str, str] | None
-
-
-def _pack(root: Path | str, platform: str | None = None):
-    platform_ = f" --platform {platform}" if platform else ""
-    cmd = f"charmcraft pack -p {root}{platform_}"
-    proc = subprocess.run(
-        shlex.split(cmd),
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-    # The output looks like:
-    # ❯ charmcraft pack
-    # Packed tempo-coordinator-k8s_ubuntu@24.04-amd64.charm
-    # Packed tempo-coordinator-k8s_ubuntu@22.04-amd64.charm
-
-    # Don't ask me why this goes to stderr.
-    output = proc.stderr
-
-    # we parse it and collect all the built charms.
-    packed_charms = [
-        line.split()[1] for line in output.strip().splitlines() if line.startswith("Packed")
-    ]
-
-    if not packed_charms:
-        raise ValueError(
-            f"unable to get packed charm(s) ({cmd!r} completed with {proc.returncode=}, {proc.stdout=}, {proc.stderr=})"
-        )
-
-    return packed_charms
-
-
-def pack(root: Path | str = "./", platform: str | None = None) -> Path:
-    """Pack a local charm and return it."""
-    packed_charms = _pack(root, platform)
-
-    if len(packed_charms) > 1:
-        raise ValueError(
-            "This charm supports multiple platforms. "
-            "Pass a `platform` argument to control which charm you're getting instead."
-        )
-
-    return Path(packed_charms[0]).resolve()
 
 
 def get_resources(root: Path | str = "./") -> dict[str, str] | None:
