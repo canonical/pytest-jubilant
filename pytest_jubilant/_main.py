@@ -28,7 +28,6 @@ _LOG_WAIT = 2.0  # Time to wait before processing logs on failure.
 _LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
 
 
-
 def pytest_addoption(parser):
     group = parser.getgroup("jubilant")
     group.addoption(
