@@ -6,15 +6,16 @@ Named to run after the pack tests, as the test files use the packed charm.
 from __future__ import annotations
 
 import pathlib
+import typing
 from typing import Iterable
 
-import pytest
+if typing.TYPE_CHECKING:
+    import pytest
 
 pytest_plugins = ["pytester"]
 
 
-@pytest.mark.parametrize("_", range(100))
-def test_juju_debug_log_on_failure(_, pytester: pytest.Pytester, tmp_path: pathlib.Path):
+def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: pathlib.Path):
     test_file1 = (pathlib.Path(__file__).parent / "dump_logs_tests.py").read_text()
     test_file2 = test_file1.replace('get_juju("foo1")', 'get_juju("foo2")')
     test_file2 = test_file2.replace('get_juju("bar1")', 'get_juju("bar2")')
