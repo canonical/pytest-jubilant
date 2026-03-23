@@ -150,7 +150,7 @@ class TempModelFactory:
                     else jdl
                 )
                 end_msg = f"--- end of `juju debug-log` for model {model} ---"
-                print(f"{msg}\n{last_n_lines}\n{end_msg}", file=sys.stderr)
+                print(f"{msg}\n{last_n_lines}\n{end_msg}", file=sys.stderr, flush=True)
             if self._log_path:
                 jdl_path = self._log_path / (model + "-juju-debug.log")
                 jdl_path.write_text(jdl)
