@@ -18,8 +18,15 @@ import jubilant
 import pytest
 import yaml
 
-_LOG_LIMIT = 1000
-_LOG_WAIT = 2.0
+# If the test failure occurs in the middle of a Juju operation, like processing an action,
+# then the logs for the operation in question might not be fully processed by Juju yet.
+# Testing with a mid-action failure several hundred times, 2 seconds seems like a reliable
+# enough amount of time to wait and always have the logs (though in practice this will depend
+# on factors like system load). Several hundred tests with a 1 second wait had a handful of
+# cases where the logs were missing the latest lines.
+_LOG_WAIT = 2.0  # Time to wait before processing logs on failure.
+_LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
+
 
 
 def pytest_addoption(parser):
