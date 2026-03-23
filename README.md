@@ -5,7 +5,7 @@ And some cool stuff on top.
 
 # Fixtures
 
-## `juju` 
+## `juju`
 This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
 See also the `--model` and `--no-teardown` options below, which modify its behavior.
 Usage:
@@ -20,8 +20,8 @@ def test_deploy(juju: Juju):
 ```
 
 ## `temp_model_factory`
-This is a module-scoped fixture that manages temporary models for your test runs. 
-It is what the `juju` fixture is using behind the scenes. 
+This is a module-scoped fixture that manages temporary models for your test runs.
+It is what the `juju` fixture is using behind the scenes.
 
 Especially useful if you have test cases that require multiple models.
 ```python
@@ -46,7 +46,7 @@ def test_cmr(juju: Juju, istio: Juju):
     istio.cli("relate", "istio", "foo:bar")
 ```
 
-This test will spin up two temporary models, one called `test-cmr-<randomhex>`, and one called `test-cmr-<randomhex>istio`, 
+This test will spin up two temporary models, one called `test-cmr-<randomhex>`, and one called `test-cmr-<randomhex>istio`,
 and tear them down on context exit.
 
 This fixture can be used with the options described below:
@@ -62,26 +62,26 @@ Do note that this model **will** be torn down at the end of the test run just li
 
 Usage:
 
-    pytest ./tests/integration -k test_foo --model "model2" 
+    pytest ./tests/integration -k test_foo --model "model2"
     # runs the tests on a new 'model2' model and tears it down afterwards
 
     juju add-model model1
-    pytest ./tests/integration -k test_foo --model "model1" --no-teardown 
+    pytest ./tests/integration -k test_foo --model "model1" --no-teardown
     # runs the tests on the existing 'model1' model, and keeps it
-    
+
 
 ## `--switch`
-Switch to the (randomly-named?) model that is currently in scope, so you can keep an 
-eye on the juju status as the tests progress. 
+Switch to the (randomly-named?) model that is currently in scope, so you can keep an
+eye on the juju status as the tests progress.
 (Won't work well if you're running multiple test modules in parallel.)
 
 Usage:
 
-    pytest ./tests/integration -k test-something --switch  
-    # will switch you to the test-something-09i123451 (random bits may differ) model as soon as it's created 
+    pytest ./tests/integration -k test-something --switch
+    # will switch you to the test-something-09i123451 (random bits may differ) model as soon as it's created
 
-    pytest ./tests/integration -k test-something --model mymodel --switch  
-    # will switch you to the `mymodel` model as soon as it's created 
+    pytest ./tests/integration -k test-something --model mymodel --switch
+    # will switch you to the `mymodel` model as soon as it's created
 
 ## `--no-teardown`
 Skip all tests marked with `teardown` and skip destroying the models.
@@ -90,7 +90,7 @@ Warning: The `--keep-models` flag used by `pytest-operator` is unsupported as of
 Be sure to use `--no-teardown` instead.
 
 Usage:
-    pytest ./tests/integration --no-teardown 
+    pytest ./tests/integration --no-teardown
 
 
 ## `--no-setup`
@@ -99,7 +99,7 @@ See [this article](https://discourse.charmhub.io/t/14006) for the idea behind th
 Usage:
 
     pytest ./tests/integration --no-teardown # make a note of the temporary model name
-    pytest ./tests/integration --model <temporary model name> --no-setup 
+    pytest ./tests/integration --model <temporary model name> --no-setup
 
 
 ## `--dump-logs`
@@ -110,7 +110,7 @@ Prior to tearing down all models owned by a temp_model_factory (i.e. prior to cl
 Usage:
 
     pytest ./tests/integration ./integration/test_ingress.py --dump-logs=./debug_logs
-    # once the tests are done, you'll find the logs in 
+    # once the tests are done, you'll find the logs in
     # ./debug_logs/test-ingress-c372ef49-jdl.txt (random bits may vary).
 
     pytest ./tests/integration ./integration/test_ingress.py --model foo --dump-logs=./debug_logs
@@ -145,7 +145,7 @@ def test_relate(juju):
 ```
 
 ## `teardown`
-Marker for tests that destroy (parts of) a model. 
+Marker for tests that destroy (parts of) a model.
 
 Usage:
 
@@ -166,16 +166,15 @@ def test_destroy(juju):
 
 # Utilities
 
-## `pack` and `get_resources`
+## `get_resources`
 
-Wrapper around `charmcraft pack` to build a charm and return the packed charm path, ready to be passed to `juju.deploy`.
-`get_resources` will parse a `charmcraft.yaml` file and return a mapping from resources to their `upstream-source` 
+`get_resources` will parse a `charmcraft.yaml` file and return a mapping from resources to their `upstream-source`
 field as is standard convention.
 
 ```yaml
 # example /path/to/foo-charm-repo-root-dir/charmcraft.yaml
 
-# [snip] 
+# [snip]
 resources:
   nginx-image:
     type: oci-image
@@ -190,24 +189,20 @@ resources:
 Usage:
 
 ```python
-from pytest_jubilant import pack, get_resources
+from pytest_jubilant import get_resources
 import pytest
 
 
 @pytest.mark.setup
-def test_build_deploy_charm(juju):
-    charm_root = "/path/to/foo-charm-repo-root-dir/"
+def test_deploy_charm(juju):
     juju.deploy(
-        pack(charm_root),
-        "foo",
+        os.environ["CHARM_PATH"],
         # the resources can only be inferred from the charm's metadata/charmcraft yaml
         # if you use the `upstream-source` convention
         resources=get_resources(charm_root),
         num_units=3,
     )
 ```
-
-If you have a multiplatform charm, you can use: `pack("./", platform="ubuntu@24.04")`.
 
 # DEVELOPERS
 
