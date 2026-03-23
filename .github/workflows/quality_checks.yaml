@@ -50,4 +50,4 @@ jobs:
       - run: uv tool install tox --with tox-uv
       - run: tox -e integration
         env:
-          SIMPLE_CHARM_PATH: ./tests/integration/charms/simple/simple_amd64.charm
+          SIMPLE_CHARM_PATH: ${{ github.workspace }}/tests/integration/charms/simple/simple_amd64.charm
