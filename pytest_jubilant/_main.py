@@ -8,14 +8,24 @@ from __future__ import annotations
 
 import logging
 import secrets
+import sys
+import time
+import typing
 from pathlib import Path
+from typing import Callable
 
 import jubilant
 import pytest
 import yaml
 
-JDL_LOGFILE_EXTENSION = "-jdl.txt"
-DEFAULT_JDL_DUMP_PATH = "./.logs"
+# If the test failure occurs in the middle of a Juju operation, like processing an action,
+# then the logs for the operation in question might not be fully processed by Juju yet.
+# Testing with a mid-action failure several hundred times, 2 seconds seems like a reliable
+# enough amount of time to wait and always have the logs (though in practice this will depend
+# on factors like system load). Several hundred tests with a 1 second wait had a handful of
+# cases where the logs were missing the latest lines.
+_LOG_WAIT = 2.0  # Time to wait before processing logs on failure.
+_LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
 
 
 def pytest_addoption(parser):
@@ -48,10 +58,11 @@ def pytest_addoption(parser):
         "--dump-logs",
         action="store",
         nargs="?",
-        const=DEFAULT_JDL_DUMP_PATH,
+        const=Path(".logs"),
         default=None,
+        type=Path,
         help="Dump the juju debug-log for each model prior to teardown. "
-        f"The default dump location is {DEFAULT_JDL_DUMP_PATH!r}.",
+        "The default dump location is './.logs'.",
     )
 
 
@@ -96,12 +107,14 @@ class TempModelFactory:
         prefix: str,
         randbits: str | None = None,
         allow_existing_model: bool = False,
+        log_path: Path | None = None,
         add_model: bool = False,
     ):
         self.prefix = prefix
         self.randbits = randbits
         self._models: dict[str, jubilant.Juju] = {}
         self._allow_existing_model = allow_existing_model
+        self._log_path = log_path
         self._add_model = add_model
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
@@ -128,13 +141,26 @@ class TempModelFactory:
         self._models[model_name] = juju
         return juju
 
-    def _dump_all_logs(self, path: Path = Path(DEFAULT_JDL_DUMP_PATH)):
-        path.mkdir(parents=True, exist_ok=True)
+    def _dump_all_logs(self, *, also_log_lines: int = 0):
+        if not (also_log_lines or self._log_path):
+            return
+        if self._log_path:
+            self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
-            jdl_path = path / (model + JDL_LOGFILE_EXTENSION)
-            jdl = juju.cli("debug-log", "--replay")
-            jdl_path.write_text(jdl)
-            logging.info(f"dropping jdl for model {model} to {jdl_path}")
+            jdl = juju.debug_log(limit=0 if self._log_path else also_log_lines)
+            if also_log_lines:
+                msg = f"Logging last {also_log_lines} lines of `juju debug-log` for model {model}:"
+                last_n_lines = (
+                    "\n".join(jdl.rsplit("\n", also_log_lines)[-also_log_lines:])
+                    if self._log_path
+                    else jdl
+                )
+                end_msg = f"--- end of `juju debug-log` for model {model} ---"
+                print(f"{msg}\n{last_n_lines}\n{end_msg}", file=sys.stderr, flush=True)
+            if self._log_path:
+                jdl_path = self._log_path / (model + "-juju-debug.log")
+                jdl_path.write_text(jdl)
+                logging.info(f"Wrote full `juju debug-log` for model {model} to {jdl_path}")
 
     def _teardown(self, force: bool = False):
         for model, juju in self._models.items():
@@ -142,36 +168,61 @@ class TempModelFactory:
 
 
 @pytest.fixture(scope="module")
-def temp_model_factory(request):
-    user_model = request.config.getoption("--model")
+def _sleep_once():  # pyright: ignore[reportUnusedFunction]
+    """Return a function that sleeps when called for the first time.
+
+    The returned function does nothing on repeated calls.
+    This allows fixtures of the same scope to ensure a single sleep happens before teardown.
+    """
+    slept = False
+
+    def sleep():
+        nonlocal slept
+        if not slept:
+            time.sleep(_LOG_WAIT)
+            slept = True
+
+    return sleep
+
+
+@pytest.fixture(scope="module")
+def temp_model_factory(request: pytest.FixtureRequest, _sleep_once: Callable[[], None]):
+    user_model = typing.cast("str | None", request.config.getoption("--model"))
     if user_model:
         prefix = user_model
         randbits = None
     else:
-        prefix = (request.module.__name__.rpartition(".")[-1]).replace("_", "-")
+        module_name = typing.cast("str", request.module.__name__)  # type: ignore
+        prefix = (module_name.rpartition(".")[-1]).replace("_", "-")
         randbits = secrets.token_hex(4)
     factory = TempModelFactory(
         prefix=prefix,
         randbits=randbits,
-        allow_existing_model=user_model,
+        allow_existing_model=bool(user_model),
+        log_path=typing.cast("Path | None", request.config.getoption("--dump-logs")),
         add_model=not request.config.getoption("--no-setup"),
     )
 
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    if dump_logs := request.config.getoption("--dump-logs"):
-        factory._dump_all_logs(Path(dump_logs))
+    if request.session.testsfailed:
+        also_log_lines = _LOG_LIMIT
+        _sleep_once()  # Wait for Juju to process logs or the latest lines might be missing
+    else:
+        also_log_lines = 0
+    factory._dump_all_logs(also_log_lines=also_log_lines)  # pyright: ignore[reportPrivateUsage]
 
     if not request.config.getoption("--no-teardown"):
         # TODO: jubilant defaults to --force, but is that a good idea?
-        factory._teardown(force=True)
+        factory._teardown(force=True)  # pyright: ignore[reportPrivateUsage]
 
 
 @pytest.fixture(scope="module")
-def juju(request, temp_model_factory):
+def juju(request: pytest.FixtureRequest, temp_model_factory: TempModelFactory):
     juju = temp_model_factory.get_juju("")
     if request.config.getoption("--switch"):
+        assert juju.model  # noqa: S101
         juju.cli("switch", juju.model, include_model=False)
     return juju
 
