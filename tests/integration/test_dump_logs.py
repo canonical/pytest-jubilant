@@ -6,16 +6,15 @@ Named to run after the pack tests, as the test files use the packed charm.
 from __future__ import annotations
 
 import pathlib
-import typing
 from typing import Iterable
 
-if typing.TYPE_CHECKING:
-    import pytest
+import pytest
 
 pytest_plugins = ["pytester"]
 
 
-def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Path):
+@pytest.mark.parametrize("_", range(100))
+def test_juju_debug_log_on_fail(_: int, pytester: pytest.Pytester, tmp_path: pathlib.Path):
     test_file1 = (pathlib.Path(__file__).parent / "dump_logs_tests_fail.py").read_text()
     test_file2 = test_file1.replace('get_juju("foo1")', 'get_juju("foo2")')
     test_file2 = test_file2.replace('get_juju("bar1")', 'get_juju("bar2")')
@@ -104,7 +103,8 @@ def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     assert not _in_line("Hello, it is I!", bar2_full_log_lines)
 
 
-def test_juju_debug_log_on_pass(pytester: pytest.Pytester, tmp_path: pathlib.Path):
+@pytest.mark.parametrize("_", range(100))
+def test_juju_debug_log_on_pass(_: int, pytester: pytest.Pytester, tmp_path: pathlib.Path):
     test_file1 = (pathlib.Path(__file__).parent / "dump_logs_tests_pass.py").read_text()
     test_file2 = test_file1.replace('get_juju("foo1")', 'get_juju("foo2")')
     test_file2 = test_file2.replace('get_juju("bar1")', 'get_juju("bar2")')
