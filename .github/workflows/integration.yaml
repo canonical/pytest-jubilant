@@ -74,7 +74,6 @@ jobs:
           persist-credentials: false
       - run: sudo snap install --classic concierge
       - name: Run concierge prepare and poll for packing in parallel
-        shell: python
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
