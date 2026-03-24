@@ -41,7 +41,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - run: exit 1  # force a failure to test cancelling the workflow if pack fails
       - run: sudo snap install --classic concierge
       - run: sudo concierge prepare -c .github/concierge/pack.yaml
       - run: charmcraft pack --destructive-mode
