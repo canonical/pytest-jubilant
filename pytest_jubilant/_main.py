@@ -28,7 +28,7 @@ _LOG_WAIT = 2.0  # Time to wait before processing logs if we need them.
 _LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser):
     group = parser.getgroup("jubilant")
     group.addoption(
         "--prefix",
@@ -66,7 +66,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config):
     config.addinivalue_line("markers", "setup: tests that setup some parts of the environment.")
     config.addinivalue_line(
         "markers", "teardown: tests that tear down some parts of the environment."
@@ -85,7 +85,7 @@ def pytest_configure(config):
         raise pytest.UsageError(msg)
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items):
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
