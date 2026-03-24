@@ -1,7 +1,7 @@
 type: charm
-name: simple
-title: Simple Test Charm
-summary: A simple test charm for use in integration tests.
+name: log-actions
+title: Log Actions Test Charm
+summary: A test charm with log actions for use in integration tests.
 description: What it says on the tin.
 
 # https://documentation.ubuntu.com/charmcraft/stable/howto/build-guides/select-platforms/
