@@ -30,11 +30,12 @@ def _main() -> None:
     deadline = time.monotonic() + 3600
     for interval in itertools.chain([0], itertools.repeat(15)):
         if time.monotonic() >= deadline:
-            sys.exit(f"Timed out waiting for {job_name!r}.")
+            print(f"Timed out waiting for {job_name!r}.", flush=True)
+            sys.exit(1)
         if interval:
             print(f"  Sleeping {interval} seconds before retry ...")
             time.sleep(interval)
-        print(f"Running {cmd}:")
+        print(f"Running {cmd}")
         try:
             raw = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE)  # noqa: S603
         except subprocess.CalledProcessError as e:
@@ -46,14 +47,15 @@ def _main() -> None:
             print("  Job not visible yet!")
             continue
         status = job["status"]  # queued | in_progress | completed
-        print(f"  Job running with status={status}")
+        print(f"  Job {job_name!r} status: {status}")
         if status != "completed":
             continue
-        conclusion = job.get("conclusion")  # success | failure | cancelled | ...
+        conclusion = job.get("conclusion")  # success | failure | cancelled | skipped | ...
         if conclusion == "success":
-            print(f"Job {job_name!r} succeeded.")
+            print(f"Job {job_name!r} succeeded!")
             sys.exit(0)
-        sys.exit(f"Job {job_name!r} ended with: {conclusion}")
+        print(f"Job {job_name!r} ended with: {conclusion}", flush=True)
+        sys.exit(1)
 
 
 def _find_job(jobs: list[dict[str, Any]], name: str) -> dict[str, Any] | None:
