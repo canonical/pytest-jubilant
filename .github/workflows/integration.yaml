@@ -50,6 +50,7 @@ jobs:
           name: ${{ matrix.charm }}-charm
           path: "tests/integration/charms/${{ matrix.charm }}/*.charm"
           if-no-files-found: error
+      - run: exit 1  # force a failure to test cancelling the workflow if pack fails
 
   needs-pack:
     needs: [pack]
