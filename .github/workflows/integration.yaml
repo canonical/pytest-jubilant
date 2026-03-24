@@ -72,27 +72,14 @@ jobs:
         with:
           persist-credentials: false
       - run: sudo snap install --classic concierge
-      - name: Run concierge prepare while polling for packing
+      - name: Run concierge prepare and poll for packing in parallel
         shell: python
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          import subprocess, sys, time
-          wait_for_pack = subprocess.Popen(["python3", ".github/wait-for-job.py", "needs-pack"])
-          concierge = subprocess.Popen(["sudo", "concierge", "prepare", "-c", ".github/concierge/test.yaml"])
-          while True:
-              if (return_code := wait_for_pack.poll()) is not None:
-                  print(f"wait_for_pack finished with return code {return_code}", flush=True)
-                  if return_code == 0:
-                      sys.exit(concierge.wait())
-                  sys.exit("Pack failed/cancelled while setup was running; failing early.")
-              if (return_code := concierge.poll()) is not None:
-                  print(f"concierge finished with return code {return_code}", flush=True)
-                  if return_code == 0:
-                      sys.exit(wait_for_pack.wait())
-                  sys.exit("Concierge failed!")
-              print("Waiting for pack and concierge to finish...", flush=True)
-              time.sleep(1)
+          parallel --tag --line-buffer --halt now,fail=1 ::: \
+            'sudo concierge prepare -c .github/concierge/test.yaml' \
+            'python3 .github/wait-for-job.py needs-pack'
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - run: uv tool install tox --with tox-uv
       - uses: actions/download-artifact@v4
