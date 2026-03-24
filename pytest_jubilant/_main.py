@@ -7,11 +7,11 @@
 from __future__ import annotations
 
 import logging
+import pathlib
 import secrets
 import sys
 import time
 import typing
-from pathlib import Path
 from typing import Callable
 
 import jubilant
@@ -58,9 +58,9 @@ def pytest_addoption(parser):
         "--dump-logs",
         action="store",
         nargs="?",
-        const=Path(".logs"),
+        const=pathlib.Path(".logs"),
         default=None,
-        type=Path,
+        type=pathlib.Path,
         help="Dump the juju debug-log for each model prior to teardown. "
         "The default dump location is './.logs'.",
     )
@@ -106,7 +106,7 @@ class TempModelFactory:
         self,
         model_prefix: str,
         allow_existing_model: bool = False,
-        log_path: Path | None = None,
+        log_path: pathlib.Path | None = None,
         add_model: bool = False,
     ):
         self._model_prefix = model_prefix
@@ -198,7 +198,7 @@ def temp_model_factory(
     user_prefix = typing.cast("str | None", request.config.getoption("--prefix"))
     module_name = typing.cast("str", request.module.__name__)  # type: ignore
     module_part = module_name.rpartition(".")[-1].replace("_", "-")
-    dump_logs = typing.cast("Path | None", request.config.getoption("--dump-logs"))
+    dump_logs = typing.cast("pathlib.Path | None", request.config.getoption("--dump-logs"))
     factory = TempModelFactory(
         model_prefix=f"{user_prefix or _session_prefix}-{module_part}",
         allow_existing_model=bool(user_prefix),
@@ -228,10 +228,10 @@ def juju(request: pytest.FixtureRequest, temp_model_factory: TempModelFactory):
     return juju
 
 
-def get_resources(root: Path | str = "./") -> dict[str, str] | None:
+def get_resources(root: pathlib.Path | str = "./") -> dict[str, str] | None:
     """Obtain the charm resources from metadata.yaml's upstream-source fields."""
     for meta_name in ("metadata.yaml", "charmcraft.yaml"):
-        if (meta_yaml := Path(root) / meta_name).exists():
+        if (meta_yaml := pathlib.Path(root) / meta_name).exists():
             logging.debug(f"found metadata file: {meta_yaml}")
             meta = yaml.safe_load(meta_yaml.read_text())
             if meta_resources := meta.get("resources"):
