@@ -30,6 +30,7 @@ jobs:
       - run: tox -e unit
 
   run-integration:
+    needs: [lint, unit]
     uses: ./.github/workflows/integration.yaml
     permissions:
       actions: write

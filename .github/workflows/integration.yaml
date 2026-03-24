@@ -81,12 +81,12 @@ jobs:
           concierge = subprocess.Popen(["sudo", "concierge", "prepare", "-c", ".github/concierge/test.yaml"])
           while True:
               if (return_code := wait_for_pack.poll()) is not None:
-                print(f"wait_for_pack finished with return code {return_code}", flush=True)
+                  print(f"wait_for_pack finished with return code {return_code}", flush=True)
                   if return_code == 0:
                       sys.exit(concierge.wait())
                   sys.exit("Pack failed/cancelled while setup was running; failing early.")
               if (return_code := concierge.poll()) is not None:
-                print(f"concierge finished with return code {return_code}", flush=True)
+                  print(f"concierge finished with return code {return_code}", flush=True)
                   if return_code == 0:
                       sys.exit(wait_for_pack.wait())
                   sys.exit("Concierge failed!")
