@@ -1,6 +1,7 @@
 name: Tests
 
 permissions:
+  actions: write  # needed by integration workflow's needs-pack job to cancel if pack fails
   contents: read
 
 on:
