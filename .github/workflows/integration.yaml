@@ -75,6 +75,8 @@ jobs:
       - run: sudo snap install --classic concierge
       - name: Run concierge prepare while polling for packing
         shell: python
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           import subprocess, sys, time
           wait_for_pack = subprocess.Popen(["python3", ".github/wait-for-job.py", "needs-pack"])
