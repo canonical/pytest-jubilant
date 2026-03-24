@@ -50,17 +50,8 @@ jobs:
           path: "tests/integration/charms/${{ matrix.charm }}/*.charm"
           if-no-files-found: error
 
-  needs-pack:
-    needs: [pack]
-    runs-on: ubuntu-latest
-    steps:
-      - run: exit 0
-
   test:
-    permissions:
-      actions: read
-      contents: read
-    needs: [init]
+    needs: [pack]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -71,13 +62,7 @@ jobs:
         with:
           persist-credentials: false
       - run: sudo snap install --classic concierge
-      - name: Run concierge prepare and poll for packing in parallel
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          parallel --tag --line-buffer --halt now,fail=1 ::: \
-            'sudo concierge prepare -c .github/concierge/test.yaml' \
-            'python3 .github/wait-for-job.py needs-pack'
+      - run: sudo concierge prepare -c .github/concierge/test.yaml
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - run: uv tool install tox --with tox-uv
       - uses: actions/download-artifact@v4
