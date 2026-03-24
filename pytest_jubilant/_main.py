@@ -31,10 +31,10 @@ _LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
 def pytest_addoption(parser):
     group = parser.getgroup("jubilant")
     group.addoption(
-        "--model",
+        "--prefix",
         action="store",
         default=None,
-        help="Juju model name to target.",
+        help="Prefix for Juju model names.",
     )
     group.addoption(
         "--no-setup",
@@ -71,16 +71,16 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "teardown: tests that tear down some parts of the environment."
     )
-    if config.getoption("--no-setup") and not config.getoption("--model"):
+    if config.getoption("--no-setup") and not config.getoption("--prefix"):
         msg = (
-            "--no-setup cannot be specified without --model"
+            "--no-setup cannot be specified without --prefix"
             ", because --no-setup will skip model creation"
             ", and surely your tests need a model."
         )
         if not config.getoption("--no-teardown"):
             msg += (
                 "\nNote that unless you specify --no-teardown"
-                ", the model(s) identified by --model *will* be torn down!"
+                ", the model(s) identified by --prefix *will* be torn down!"
             )
         raise pytest.UsageError(msg)
 
@@ -128,7 +128,7 @@ class TempModelFactory:
             try:
                 juju.add_model(model_name)
             except jubilant.CLIError as e:
-                # If --model is set (_allow_existing_model is True), then the user wants collisions.
+                # If --prefix is set (_allow_existing_model is True), then the user wants collisions.
                 # If the name is randomly generated, the chance of colliding with another
                 # randomly generated model that wasn't torn down is tiny, so we we'll just raise.
                 if self._allow_existing_model and "already exists" in (e.stderr or ""):
@@ -195,7 +195,7 @@ def temp_model_factory(
     _sleep_once: Callable[[], None],
     _session_prefix: str,
 ):
-    user_prefix = typing.cast("str | None", request.config.getoption("--model"))
+    user_prefix = typing.cast("str | None", request.config.getoption("--prefix"))
     module_name = typing.cast("str", request.module.__name__)  # type: ignore
     module_part = module_name.rpartition(".")[-1].replace("_", "-")
     dump_logs = typing.cast("Path | None", request.config.getoption("--dump-logs"))

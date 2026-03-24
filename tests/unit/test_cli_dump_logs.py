@@ -72,7 +72,7 @@ def test_fail(temp_model_factory):
     )
     custom_dir = tmp_path / "custom-logs"
 
-    result = pytester.runpytest_subprocess("--model", "model-t", "--dump-logs", str(custom_dir))
+    result = pytester.runpytest_subprocess("--prefix", "model-t", "--dump-logs", str(custom_dir))
 
     # We expect this session to fail.
     result.assert_outcomes(failed=1)

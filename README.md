@@ -7,7 +7,7 @@ And some cool stuff on top.
 
 ## `juju`
 This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
-See also the `--model` and `--no-teardown` options below, which modify its behavior.
+See also the `--prefix` and `--no-teardown` options below, which modify its behavior.
 Usage:
 
 ```python
@@ -50,24 +50,24 @@ This test will spin up two temporary models, one called `test-cmr-<randomhex>`, 
 and tear them down on context exit.
 
 This fixture can be used with the options described below:
-- `pytest tests/test_cmr.py --model test-cmr-<randomhex>` will use `test-cmr-<randomhex>` as base name, and the suffixes you defined in the fixtures will give all generated models predictable names, which means that the tests will reuse the existing models (if found) or create new ones with those names.
+- `pytest tests/test_cmr.py --prefix test-cmr-<randomhex>` will use `test-cmr-<randomhex>` as base name, and the suffixes you defined in the fixtures will give all generated models predictable names, which means that the tests will reuse the existing models (if found) or create new ones with those names.
 - `pytest tests/test_cmr.py --switch` will switch you to the 'base' model `test-cmr-<randomhex>` (not to one of the suffixed ones!).
 
 
 # Pytest CLI options
 
-## `--model`
-Override the default model name generation (test module + random bits) and use a fixed model name instead.
-Do note that this model **will** be torn down at the end of the test run just like any other, so if you're targeting an existing model you care about, don't forget the `--no-teardown` flag!.
+## `--prefix`
+Override the default model name prefix generation (random bits) and use a fixed prefix instead.
+Do note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-teardown` flag!.
 
 Usage:
 
-    pytest ./tests/integration -k test_foo --model "model2"
-    # runs the tests on a new 'model2' model and tears it down afterwards
+    pytest ./tests/integration -k test_foo --prefix "model2"
+    # runs the tests on a new 'model2-<module>' model and tears it down afterwards
 
-    juju add-model model1
-    pytest ./tests/integration -k test_foo --model "model1" --no-teardown
-    # runs the tests on the existing 'model1' model, and keeps it
+    juju add-model model1-test-foo
+    pytest ./tests/integration -k test_foo --prefix "model1" --no-teardown
+    # runs the tests on the existing 'model1-test-foo' model, and keeps it
 
 
 ## `--switch`
@@ -80,8 +80,8 @@ Usage:
     pytest ./tests/integration -k test-something --switch
     # will switch you to the test-something-09i123451 (random bits may differ) model as soon as it's created
 
-    pytest ./tests/integration -k test-something --model mymodel --switch
-    # will switch you to the `mymodel` model as soon as it's created
+    pytest ./tests/integration -k test-something --prefix mymodel --switch
+    # will switch you to the `mymodel-test-something` model as soon as it's created
 
 ## `--no-teardown`
 Skip all tests marked with `teardown` and skip destroying the models.
@@ -99,7 +99,7 @@ See [this article](https://discourse.charmhub.io/t/14006) for the idea behind th
 Usage:
 
     pytest ./tests/integration --no-teardown # make a note of the temporary model name
-    pytest ./tests/integration --model <temporary model name> --no-setup
+    pytest ./tests/integration --prefix <temporary model prefix> --no-setup
 
 
 ## `--dump-logs`
@@ -113,9 +113,9 @@ Usage:
     # once the tests are done, you'll find the logs in
     # ./debug_logs/test-ingress-c372ef49-jdl.txt (random bits may vary).
 
-    pytest ./tests/integration ./integration/test_ingress.py --model foo --dump-logs=./debug_logs
+    pytest ./tests/integration ./integration/test_ingress.py --prefix foo --dump-logs=./debug_logs
     # once the tests are done, you'll find the logs in
-    # ./debug_logs/foo-jdl.txt
+    # ./debug_logs/foo-test-ingress-jdl.txt
 
     pytest ./tests/integration ./integration/test_ingress.py --dump-logs=""
     # no logs will be saved
