@@ -10,6 +10,9 @@ This is a module(and model!)-scoped fixture that, by default, uses a temporary m
 
 See also the `--prefix`, `--no-setup`, and `--no-teardown` options below, which modify its behavior.
 
+> [!TIP]
+> Use `jubilant.Juju` as the type annotation for the `juju` fixture in your tests for better linting and IDE autocompletions.
+
 Usage:
 
 ```python
@@ -31,6 +34,11 @@ This is a module-scoped fixture that manages temporary models for your test runs
 It is what the `juju` fixture is using behind the scenes.
 
 Especially useful if you have test cases that require multiple models.
+
+> [!TIP]
+> Use `pytest_jubilant.TempModelFactory` as the type annotation for the `temp_model_factory` fixture in your tests for better linting and IDE autocompletions.
+>
+> Note that the exposed `TempModelFactory` type is just a protocol, and can't be used to directly create a temp model factory -- request the `temp_model_factory` fixture for this.
 
 Usage:
 
