@@ -4,6 +4,7 @@ on:
   workflow_call:
 
 permissions:
+  actions: write  # needed by needs-pack to cancel the run if pack fails
   contents: read
 
 jobs:
