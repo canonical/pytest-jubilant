@@ -38,6 +38,7 @@ jobs:
         charm: ${{ fromJson(needs.init.outputs.charms) }}
     runs-on: ubuntu-latest
     steps:
+      - run: exit 1
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
