@@ -24,7 +24,7 @@ import yaml
 # enough amount of time to wait and always have the logs (though in practice this will depend
 # on factors like system load). Several hundred tests with a 1 second wait had a handful of
 # cases where the logs were missing the latest lines.
-_LOG_WAIT = 2.0  # Time to wait before processing logs on failure.
+_LOG_WAIT = 2.0  # Time to wait before processing logs if we need them.
 _LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
 
 
