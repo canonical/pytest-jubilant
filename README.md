@@ -18,6 +18,7 @@ Usage:
 ```python
 # test_smoke.py
 """Test that the charm can be deployed and go to active status."""
+
 import jubilant
 
 
@@ -45,6 +46,7 @@ Usage:
 ```python
 # test_cmr.py
 """Test cross model relations."""
+
 import jubilant
 import pytest
 import pytest_jubilant

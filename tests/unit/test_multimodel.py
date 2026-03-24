@@ -16,7 +16,9 @@ def tempo(temp_model_factory: pytest_jubilant.TempModelFactory):
     yield temp_model_factory.get_juju(suffix="tempo")
 
 
-def test_multimodel(cli_mock: MagicMock, juju: jubilant.Juju, istio: jubilant.Juju, tempo: jubilant.Juju):
+def test_multimodel(
+    cli_mock: MagicMock, juju: jubilant.Juju, istio: jubilant.Juju, tempo: jubilant.Juju
+):
     assert juju.model is not None
     assert istio.model == juju.model + "-istio"
     assert tempo.model == juju.model + "-tempo"
