@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import os
-import pathlib
 import typing
 
 import jubilant
 import pytest
 
 if typing.TYPE_CHECKING:
+    import pathlib
+
     import pytest_jubilant
 
 
@@ -21,7 +21,9 @@ def models(temp_model_factory: pytest_jubilant.TempModelFactory):
 
 
 @pytest.mark.setup
-def test_deploy_and_pass(log_actions_charm: pathlib.Path, models: tuple[jubilant.Juju, jubilant.Juju]):
+def test_deploy_and_pass(
+    log_actions_charm: pathlib.Path, models: tuple[jubilant.Juju, jubilant.Juju]
+):
     foo, bar = models
     foo.deploy(log_actions_charm)
     bar.deploy(log_actions_charm)
