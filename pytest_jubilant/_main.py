@@ -99,7 +99,11 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
                 item.add_marker(skipper)
 
 
-class TempModelFactory:
+class TempModelFactory(typing.Protocol):
+    def get_juju(self, suffix: str) -> jubilant.Juju: ...
+
+
+class _TempModelFactory:
     """Manages temporary models for testing."""
 
     def __init__(
@@ -199,7 +203,7 @@ def temp_model_factory(
     module_name = typing.cast("str", request.module.__name__)  # type: ignore
     module_part = module_name.rpartition(".")[-1].replace("_", "-")
     dump_logs = typing.cast("pathlib.Path | None", request.config.getoption("--dump-logs"))
-    factory = TempModelFactory(
+    factory = _TempModelFactory(
         model_prefix=f"{user_prefix or _session_prefix}-{module_part}",
         allow_existing_model=bool(user_prefix),
         log_path=dump_logs,
