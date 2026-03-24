@@ -39,7 +39,7 @@ Especially useful if you have test cases that require multiple models.
 > [!TIP]
 > Use `pytest_jubilant.TempModelFactory` as the type annotation for the `temp_model_factory` fixture in your tests for better linting and IDE autocompletions.
 >
-> Note that the exposed `TempModelFactory` type is just a protocol, and can't be used to directly create a temp model factory -- request the `temp_model_factory` fixture for this.
+> Note that the exposed `TempModelFactory` type is just a protocol, and can't be used to directly create a temp model factory. Request the `temp_model_factory` fixture instead.
 
 Usage:
 
