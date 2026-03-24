@@ -16,7 +16,6 @@ from typing import Callable
 
 import jubilant
 import pytest
-import yaml
 
 # If the test failure occurs in the middle of a Juju operation, like processing an action,
 # then the logs for the operation in question might not be fully processed by Juju yet.
@@ -224,31 +223,3 @@ def juju(request: pytest.FixtureRequest, temp_model_factory: TempModelFactory):
         assert juju.model  # noqa: S101
         juju.cli("switch", juju.model, include_model=False)
     return juju
-
-
-def get_resources(root: Path | str = "./") -> dict[str, str] | None:
-    """Obtain the charm resources from metadata.yaml's upstream-source fields."""
-    for meta_name in ("metadata.yaml", "charmcraft.yaml"):
-        if (meta_yaml := Path(root) / meta_name).exists():
-            logging.debug(f"found metadata file: {meta_yaml}")
-            meta = yaml.safe_load(meta_yaml.read_text())
-            if meta_resources := meta.get("resources"):
-                try:
-                    resources = {
-                        resource: res_meta["upstream-source"]
-                        for resource, res_meta in meta_resources.items()
-                    }
-                except KeyError:
-                    logging.exception(
-                        "The `upstream-source` key wasn't found in the resource. If your charm follows a different convention of pointing at an OCI image, you need to pack it manually."
-                    )
-                    raise
-            else:
-                resources = None
-                logging.info(f"resources not found in {meta_name}; proceeding without resources")
-            break
-    else:
-        resources = None
-        logging.error(f"metadata/charmcraft.yaml not found at {root}; unable to load resources")
-
-    return resources
