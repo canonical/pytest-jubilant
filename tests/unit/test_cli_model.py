@@ -28,11 +28,11 @@ def test_collision_without_explicit_model_raises(pytester: pytest.Pytester):
 
     result.assert_outcomes(failed=1)
     module_name = "test-file"
-    randbits = "testing"
+    session_id = "deadbeef"
     model_name = "my-fancy-model"
     msg = (
         "ERROR failed to create new model: "
-        f'model "{module_name}-{randbits}-{model_name}" for admin already exists (already exists)'
+        f'model "jubilant-{session_id}-{module_name}-{model_name}" for admin already exists (already exists)'
     )
     assert msg in result.stdout.str()
 

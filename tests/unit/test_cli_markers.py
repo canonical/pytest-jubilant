@@ -17,17 +17,17 @@ def test_default(pytester: pytest.Pytester):
 
     result.assert_outcomes(passed=3)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
-        "test-file-testing-regular",
-        "test-file-testing-teardown",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
+        "jubilant-deadbeef-test-file-regular",
+        "jubilant-deadbeef-test-file-teardown",
     ]
     # Teardown occurs in the same order as they were registered.
     assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
-        "test-file-testing-regular",
-        "test-file-testing-teardown",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
+        "jubilant-deadbeef-test-file-regular",
+        "jubilant-deadbeef-test-file-teardown",
     ]
 
 
@@ -45,9 +45,9 @@ def test_no_setup_ok(pytester: pytest.Pytester):
     result.assert_outcomes(passed=2, skipped=1)
     assert not (pytester.path / "added.txt").exists()
     assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
-        "model-t-autouse-module-scoped-fixture",
-        "model-t-regular",
-        "model-t-teardown",
+        "model-t-test-file-autouse-module-scoped-fixture",
+        "model-t-test-file-regular",
+        "model-t-test-file-teardown",
     ]
 
 
@@ -74,9 +74,9 @@ def test_no_teardown(pytester: pytest.Pytester):
 
     result.assert_outcomes(passed=2, skipped=1)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
-        "test-file-testing-regular",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
+        "jubilant-deadbeef-test-file-regular",
     ]
     assert not (pytester.path / "destroyed.txt").exists()
 
@@ -116,12 +116,12 @@ def test_m_setup(pytester: pytest.Pytester):
 
     result.assert_outcomes(passed=1, deselected=2)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
     ]
     assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
     ]
 
 
@@ -134,8 +134,8 @@ def test_m_setup_with_no_teardown(pytester: pytest.Pytester):
 
     result.assert_outcomes(passed=1, deselected=2)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
     ]
     assert not (pytester.path / "destroyed.txt").exists()
 
@@ -149,12 +149,12 @@ def test_m_teardown(pytester: pytest.Pytester):
 
     result.assert_outcomes(passed=1, deselected=2)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-teardown",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-teardown",
     ]
     assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-teardown",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-teardown",
     ]
 
 
@@ -185,14 +185,14 @@ def pytest_addoption(parser):
 
     result.assert_outcomes(passed=3)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
-        "test-file-testing-regular",
-        "test-file-testing-teardown",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
+        "jubilant-deadbeef-test-file-regular",
+        "jubilant-deadbeef-test-file-teardown",
     ]
     assert (pytester.path / "destroyed.txt").read_text().splitlines() == [
-        "test-file-testing-autouse-module-scoped-fixture",
-        "test-file-testing-setup",
-        "test-file-testing-regular",
-        "test-file-testing-teardown",
+        "jubilant-deadbeef-test-file-autouse-module-scoped-fixture",
+        "jubilant-deadbeef-test-file-setup",
+        "jubilant-deadbeef-test-file-regular",
+        "jubilant-deadbeef-test-file-teardown",
     ]
