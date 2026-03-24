@@ -7,87 +7,102 @@ And some cool stuff on top.
 
 ## `juju`
 This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
-See also the `--prefix` and `--no-teardown` options below, which modify its behavior.
+
+See also the `--prefix`, `--no-setup`, and `--no-teardown` options below, which modify its behavior.
+
 Usage:
 
 ```python
-from jubilant import Juju, all_active
+# test_smoke.py
+"""Test that the charm can be deployed and go to active status."""
+import jubilant
 
 
-def test_deploy(juju: Juju):
+def test_deploy(juju: jubilant.Juju):
     juju.deploy("./foo.charm", "foo")
-    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
+    juju.wait(lambda status: jubilant.all_active(status, "foo"), timeout=1000)
 ```
+
+This test will spin up a temporary model named `jubilant-<randomhex>-test-smoke`.
+
 
 ## `temp_model_factory`
 This is a module-scoped fixture that manages temporary models for your test runs.
 It is what the `juju` fixture is using behind the scenes.
 
 Especially useful if you have test cases that require multiple models.
+
+Usage:
+
 ```python
+# test_cmr.py
+"""Test cross model relations."""
+import jubilant
 import pytest
-from jubilant import Juju, all_active
+import pytest_jubilant
 
 
-@pytest.fixture
-def istio(temp_model_factory):
+@pytest.fixture(scope="module")
+def istio(temp_model_factory: pytest_jubilant.TempModelFactory):
     yield temp_model_factory.get_juju(suffix="istio")
 
 
-def test_cmr(juju: Juju, istio: Juju):
+def test_offer_consume_relate(juju: jubilant.Juju, istio: jubilant.Juju):
     istio.deploy("istio-k8s", "istio")
     istio.wait(lambda status: all_active(status, "istio"), timeout=1000)
 
     juju.deploy("./foo.charm", "foo")
-    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
+    juju.wait(lambda status: jubilant.all_active(status, "foo"), timeout=1000)
 
     juju.cli("offer", "foo:bar")
     istio.cli("consume", f"{juju.model}:foo")
     istio.cli("relate", "istio", "foo:bar")
 ```
 
-This test will spin up two temporary models, one called `test-cmr-<randomhex>`, and one called `test-cmr-<randomhex>istio`,
-and tear them down on context exit.
+This test will spin up two temporary models, one called `jubilant-<randomhex>-test-cmr`, and one called `jubilant-<randomhex>-test-cmr-istio`, and tear them down on context exit.
 
-This fixture can be used with the options described below:
-- `pytest tests/test_cmr.py --prefix test-cmr-<randomhex>` will use `test-cmr-<randomhex>` as base name, and the suffixes you defined in the fixtures will give all generated models predictable names, which means that the tests will reuse the existing models (if found) or create new ones with those names.
-- `pytest tests/test_cmr.py --switch` will switch you to the 'base' model `test-cmr-<randomhex>` (not to one of the suffixed ones!).
+`pytest tests/integration --prefix my-prefix` will use `my-prefix` instead of `jubilant-<randomhex>`. The module names combined with the suffixes you defined in the fixtures will give all generated models predictable names. The tests will reuse the existing models (if found) or create new ones with those names.
 
 
 # Pytest CLI options
 
 ## `--prefix`
-Override the default model name prefix generation (random bits) and use a fixed prefix instead.
+By default, created Juju model names are prefixed with `jubilant-<randomhex>`, where `<randomhex>` is randomly generated each `pytest` run.
+Set `--prefix` on the commandline to use a fixed prefix instead.
 Do note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-teardown` flag!.
 
-Usage:
+Usage example, assuming a single model per module:
 
-    pytest ./tests/integration -k test_foo --prefix "model2"
-    # runs the tests on a new 'model2-<module>' model and tears it down afterwards
+    pytest tests/integration/test_foo.py::test_something --prefix my-prefix
+    # runs the test on new 'my-prefix-test-foo' model and tears it down afterwards
 
-    juju add-model model1-test-foo
-    pytest ./tests/integration -k test_foo --prefix "model1" --no-teardown
-    # runs the tests on the existing 'model1-test-foo' model, and keeps it
+    juju add-model my-prefix-test-foo
+    pytest tests/integration/test_foo.py::test_something --prefix my-prefix --no-teardown
+    # runs the tests on the existing 'my-prefix-test-foo' model and keeps it
 
 
 ## `--switch`
-Switch to the (randomly-named?) model that is currently in scope, so you can keep an
+Switch to the (possibly randomly-named) model that is currently in scope, so you can keep an
 eye on the juju status as the tests progress.
 (Won't work well if you're running multiple test modules in parallel.)
+Only switches to models created by the `juju` fixture, not those created by `temp_model_factory`.
 
 Usage:
 
-    pytest ./tests/integration -k test-something --switch
-    # will switch you to the test-something-09i123451 (random bits may differ) model as soon as it's created
+    pytest ./tests/integration -k test_something --switch
+    # will switch you to the 'jubilant-<randomhex>-<module>' model as soon as it's created
 
-    pytest ./tests/integration -k test-something --prefix mymodel --switch
-    # will switch you to the `mymodel-test-something` model as soon as it's created
+    pytest ./tests/integration -k test_something --prefix my-prefix --switch
+    # will switch you to the 'my-prefix-<module>' model as soon as it's created
+
 
 ## `--no-teardown`
 Skip all tests marked with `teardown` and skip destroying the models.
 Useful to inspect the state of a model after a (failed) test run.
-Warning: The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
-Be sure to use `--no-teardown` instead.
+
+> [!WARNING]
+> The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
+> Be sure to use `--no-teardown` instead.
 
 Usage:
     pytest ./tests/integration --no-teardown
@@ -143,6 +158,7 @@ def test_deploy(juju):
 def test_relate(juju):
     juju.integrate("A", "B")
 ```
+
 
 ## `teardown`
 Marker for tests that destroy (parts of) a model.
