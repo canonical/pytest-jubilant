@@ -173,6 +173,3 @@ def juju(request, temp_model_factory):
     if request.config.getoption("--switch"):
         juju.cli("switch", juju.model, include_model=False)
     return juju
-
-
-
