@@ -41,8 +41,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - run: sudo snap install --classic concierge
-      - run: sudo concierge prepare -c .github/concierge/pack.yaml
+      - run: sudo snap install --classic charmcraft
       - run: sudo charmcraft pack --destructive-mode
         working-directory: tests/integration/charms/${{ matrix.charm }}
       - uses: actions/upload-artifact@v4

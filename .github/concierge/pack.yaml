@@ -1,5 +1,0 @@
-juju:
-  disable: true
-host:
-  snaps:
-    charmcraft:
