@@ -12,7 +12,6 @@ from pathlib import Path
 
 import jubilant
 import pytest
-import yaml
 
 JDL_LOGFILE_EXTENSION = "-jdl.txt"
 DEFAULT_JDL_DUMP_PATH = "./.logs"
@@ -176,29 +175,4 @@ def juju(request, temp_model_factory):
     return juju
 
 
-def get_resources(root: Path | str = "./") -> dict[str, str] | None:
-    """Obtain the charm resources from metadata.yaml's upstream-source fields."""
-    for meta_name in ("metadata.yaml", "charmcraft.yaml"):
-        if (meta_yaml := Path(root) / meta_name).exists():
-            logging.debug(f"found metadata file: {meta_yaml}")
-            meta = yaml.safe_load(meta_yaml.read_text())
-            if meta_resources := meta.get("resources"):
-                try:
-                    resources = {
-                        resource: res_meta["upstream-source"]
-                        for resource, res_meta in meta_resources.items()
-                    }
-                except KeyError:
-                    logging.exception(
-                        "The `upstream-source` key wasn't found in the resource. If your charm follows a different convention of pointing at an OCI image, you need to pack it manually."
-                    )
-                    raise
-            else:
-                resources = None
-                logging.info(f"resources not found in {meta_name}; proceeding without resources")
-            break
-    else:
-        resources = None
-        logging.error(f"metadata/charmcraft.yaml not found at {root}; unable to load resources")
 
-    return resources
