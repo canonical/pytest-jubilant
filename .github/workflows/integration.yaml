@@ -45,7 +45,7 @@ jobs:
       - run: exit 1  # force a failure to test cancelling the workflow if pack fails
       - run: sudo snap install --classic concierge
       - run: sudo concierge prepare -c .github/concierge/pack.yaml
-      - run: charmcraft pack --platform amd64 --destructive-mode
+      - run: charmcraft pack --destructive-mode
         working-directory: tests/integration/charms/${{ matrix.charm }}
       - uses: actions/upload-artifact@v4
         with:
