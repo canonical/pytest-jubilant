@@ -43,7 +43,7 @@ jobs:
           persist-credentials: false
       - run: sudo snap install --classic concierge
       - run: sudo concierge prepare -c .github/concierge/pack.yaml
-      - run: charmcraft pack --destructive-mode
+      - run: charmcraft pack
         working-directory: tests/integration/charms/${{ matrix.charm }}
       - uses: actions/upload-artifact@v4
         with:
