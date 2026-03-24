@@ -6,7 +6,7 @@ import pytest
 @pytest.fixture(scope="session", autouse=True)
 def _patch_log_wait():
     """Set the log wait time to 0 for unit tests since we're not waiting on real Juju logs."""
-    mp = pytest.MonkeyPatch()
+    mp = pytest.MonkeyPatch()  # The monkeypatch fixture is function scoped, so make our own.
     mp.setattr("pytest_jubilant._main._LOG_WAIT", 0)
     try:
         yield
