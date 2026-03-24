@@ -25,9 +25,9 @@ def test_deploy_and_pass(
     log_actions_charm: pathlib.Path, models: tuple[jubilant.Juju, jubilant.Juju]
 ):
     foo, bar = models
-    foo.deploy(log_actions_charm)
-    bar.deploy(log_actions_charm)
+    foo.deploy(log_actions_charm, app="log")
+    bar.deploy(log_actions_charm, app="log")
     foo.wait(jubilant.all_active, timeout=900)
     bar.wait(jubilant.all_active)
-    foo.run("simple/0", "log")
-    bar.run("simple/0", "log")
+    foo.run("log/0", "log")
+    bar.run("log/0", "log")
