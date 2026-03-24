@@ -28,22 +28,22 @@ def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Pat
 
     # test_file1
     # We emit the last 1000 lines of `juju debug-log` for each model if tests fail.
-    # Model 'model-t-foo1': emits 10k lines of logs in an action and then fails.
-    foo1_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-foo1:"
+    # Model 'model-t-test-file1-foo1': emits 10k lines of logs in an action and then fails.
+    foo1_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-test-file1-foo1:"
     foo1_lines = result.stdout.get_lines_after(f"*{foo1_msg}*")  # Match with fnmatch.
     foo1_end = _index_contains(
-        foo1_lines, "--- end of `juju debug-log` for model model-t-foo1 ---"
+        foo1_lines, "--- end of `juju debug-log` for model model-t-test-file1-foo1 ---"
     )
     assert foo1_end == 1000
     foo1_last_lines = foo1_lines[:foo1_end]
     assert _in_line("Hello, it is I! '10000'", foo1_last_lines)
     assert not _in_line("Hello, it is I! '1'", foo1_last_lines)  # We only log the last 1k lines.
 
-    # Model 'model-t-bar1': cleaned up when the tests exit after the action failed.
-    bar1_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-bar1:"
+    # Model 'model-t-test-file1-bar1': cleaned up when the tests exit after the action failed.
+    bar1_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-test-file1-bar1:"
     bar1_lines = result.stdout.get_lines_after(f"*{bar1_msg}*")  # Match with fnmatch.
     bar1_end = _index_contains(
-        bar1_lines, "--- end of `juju debug-log` for model model-t-bar1 ---"
+        bar1_lines, "--- end of `juju debug-log` for model model-t-test-file1-bar1 ---"
     )
     assert bar1_end > 1
     assert bar1_end < 1000  # We didn't run the log action so there aren't that many log lines.
@@ -51,13 +51,13 @@ def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     assert not _in_line("Hello, it is I!", bar1_last_lines)  # We don't run the log action for bar.
 
     # The full logs are still written on failure with --dump-logs.
-    foo1_log_path = custom_dir / "model-t-foo1-juju-debug.log"
+    foo1_log_path = custom_dir / "model-t-test-file1-foo1-juju-debug.log"
     assert foo1_log_path.exists()
     foo1_full_log_lines = foo1_log_path.read_text().splitlines()
     assert len(foo1_full_log_lines) > 10_000  # log action logs 10k times
     assert _in_line("Hello, it is I! '1'", foo1_full_log_lines)
     assert _in_line("Hello, it is I! '10000'", foo1_full_log_lines)
-    bar1_log_path = custom_dir / "model-t-bar1-juju-debug.log"
+    bar1_log_path = custom_dir / "model-t-test-file1-bar1-juju-debug.log"
     assert bar1_log_path.exists()
     bar1_full_log_lines = bar1_log_path.read_text().splitlines()
     assert bar1_full_log_lines
@@ -65,22 +65,22 @@ def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Pat
 
     # test_file2
     # We emit the last 1000 lines of `juju debug-log` for each model if tests fail.
-    # Model 'model-t-foo2': emits 10k lines of logs in an action and then fails.
-    foo2_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-foo2:"
+    # Model 'model-t-test-file2-foo2': emits 10k lines of logs in an action and then fails.
+    foo2_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-test-file2-foo2:"
     foo2_lines = result.stdout.get_lines_after(f"*{foo2_msg}*")  # Match with fnmatch.
     foo2_end = _index_contains(
-        foo2_lines, "--- end of `juju debug-log` for model model-t-foo2 ---"
+        foo2_lines, "--- end of `juju debug-log` for model model-t-test-file2-foo2 ---"
     )
     assert foo2_end == 1000
     foo2_last_lines = foo2_lines[:foo2_end]
     assert _in_line("Hello, it is I! '10000'", foo2_last_lines)
     assert not _in_line("Hello, it is I! '1'", foo2_last_lines)  # We only log the last 1k lines.
 
-    # Model 'model-t-bar2': cleaned up when the tests exit after the action failed.
-    bar2_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-bar2:"
+    # Model 'model-t-test-file2-bar2': cleaned up when the tests exit after the action failed.
+    bar2_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-test-file2-bar2:"
     bar2_lines = result.stdout.get_lines_after(f"*{bar2_msg}*")  # Match with fnmatch.
     bar2_end = _index_contains(
-        bar2_lines, "--- end of `juju debug-log` for model model-t-bar2 ---"
+        bar2_lines, "--- end of `juju debug-log` for model model-t-test-file2-bar2 ---"
     )
     assert bar2_end > 1
     assert bar2_end < 1000  # We didn't run the log action so there aren't that many log lines.
@@ -88,13 +88,13 @@ def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     assert not _in_line("Hello, it is I!", bar2_last_lines)  # We don't run the log action for bar.
 
     # The full logs are still written on failure with --dump-logs.
-    foo2_log_path = custom_dir / "model-t-foo2-juju-debug.log"
+    foo2_log_path = custom_dir / "model-t-test-file2-foo2-juju-debug.log"
     assert foo2_log_path.exists()
     foo2_full_log_lines = foo2_log_path.read_text().splitlines()
     assert len(foo2_full_log_lines) > 10_000  # log action logs 10k times
     assert _in_line("Hello, it is I! '1'", foo2_full_log_lines)
     assert _in_line("Hello, it is I! '10000'", foo2_full_log_lines)
-    bar2_log_path = custom_dir / "model-t-bar2-juju-debug.log"
+    bar2_log_path = custom_dir / "model-t-test-file2-bar2-juju-debug.log"
     assert bar2_log_path.exists()
     bar2_full_log_lines = bar2_log_path.read_text().splitlines()
     assert bar2_full_log_lines
@@ -122,13 +122,13 @@ def test_juju_debug_log_on_pass(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     assert "--- end of `juju debug-log`" not in stdout
 
     # The full logs are still written with --dump-logs even on success.
-    foo1_log_path = custom_dir / "model-t-foo1-juju-debug.log"
+    foo1_log_path = custom_dir / "model-t-test-file1-foo1-juju-debug.log"
     assert foo1_log_path.exists()
     foo1_full_log_lines = foo1_log_path.read_text().splitlines()
     assert len(foo1_full_log_lines) > 10_000  # log action logs 10k times
     assert _in_line("Hello, it is I! '1'", foo1_full_log_lines)
     assert _in_line("Hello, it is I! '10000'", foo1_full_log_lines)
-    bar1_log_path = custom_dir / "model-t-bar1-juju-debug.log"
+    bar1_log_path = custom_dir / "model-t-test-file1-bar1-juju-debug.log"
     assert bar1_log_path.exists()
     bar1_full_log_lines = bar1_log_path.read_text().splitlines()
     assert len(bar1_full_log_lines) > 10_000  # log action logs 10k times
@@ -136,13 +136,13 @@ def test_juju_debug_log_on_pass(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     assert _in_line("Hello, it is I! '10000'", bar1_full_log_lines)
 
     # test_file2
-    foo2_log_path = custom_dir / "model-t-foo2-juju-debug.log"
+    foo2_log_path = custom_dir / "model-t-test-file2-foo2-juju-debug.log"
     assert foo2_log_path.exists()
     foo2_full_log_lines = foo2_log_path.read_text().splitlines()
     assert len(foo2_full_log_lines) > 10_000  # log action logs 10k times
     assert _in_line("Hello, it is I! '1'", foo2_full_log_lines)
     assert _in_line("Hello, it is I! '10000'", foo2_full_log_lines)
-    bar2_log_path = custom_dir / "model-t-bar2-juju-debug.log"
+    bar2_log_path = custom_dir / "model-t-test-file2-bar2-juju-debug.log"
     assert bar2_log_path.exists()
     bar2_full_log_lines = bar2_log_path.read_text().splitlines()
     assert len(bar2_full_log_lines) > 10_000  # log action logs 10k times
