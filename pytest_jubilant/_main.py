@@ -195,22 +195,21 @@ def temp_model_factory(request: pytest.FixtureRequest, _sleep_once: Callable[[],
         module_name = typing.cast("str", request.module.__name__)  # type: ignore
         prefix = (module_name.rpartition(".")[-1]).replace("_", "-")
         randbits = secrets.token_hex(4)
+    dump_logs = typing.cast("Path | None", request.config.getoption("--dump-logs"))
     factory = TempModelFactory(
         prefix=prefix,
         randbits=randbits,
         allow_existing_model=bool(user_model),
-        log_path=typing.cast("Path | None", request.config.getoption("--dump-logs")),
+        log_path=dump_logs,
         add_model=not request.config.getoption("--no-setup"),
     )
 
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    if request.session.testsfailed:
-        also_log_lines = _LOG_LIMIT
+    also_log_lines = _LOG_LIMIT if request.session.testsfailed else 0
+    if also_log_lines or dump_logs:
         _sleep_once()  # Wait for Juju to process logs or the latest lines might be missing
-    else:
-        also_log_lines = 0
     factory._dump_all_logs(also_log_lines=also_log_lines)  # pyright: ignore[reportPrivateUsage]
 
     if not request.config.getoption("--no-teardown"):
