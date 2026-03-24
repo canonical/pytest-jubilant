@@ -4,7 +4,6 @@ on:
   workflow_call:
 
 permissions:
-  actions: write  # needed by needs-pack to cancel the run if pack fails
   contents: read
 
 jobs:
@@ -55,17 +54,9 @@ jobs:
 
   needs-pack:
     needs: [pack]
-    if: ${{ !cancelled() }}
-    permissions:
-      actions: write
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel workflow if pack failed
-        if: needs.pack.result == 'failure'
-        # https://cli.github.com/manual/gh_run_cancel
-        run: gh run cancel --repo ${{ github.repository }} ${{ github.run_id }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: exit 0
 
   test:
     permissions:
@@ -82,12 +73,24 @@ jobs:
         with:
           persist-credentials: false
       - run: sudo snap install --classic concierge
-      - run: sudo concierge prepare -c .github/concierge/test.yaml
+      - name: Run concierge prepare while polling for packing
+        shell: python
+        run: |
+          import subprocess, sys, time
+          wait_for_pack = subprocess.Popen(["python3", ".github/wait-for-job.py", "needs-pack"])
+          concierge = subprocess.Popen(["sudo", "concierge", "prepare", "-c", ".github/concierge/test.yaml"])
+          while True:
+              if (return_code := wait_for_pack.poll()) is not None:
+                  if return_code == 0:
+                      sys.exit(concierge.wait())
+                  sys.exit("Pack failed/cancelled while setup was running; failing early.")
+              if (return_code := concierge.poll()) is not None:
+                  if return_code == 0:
+                      sys.exit(wait_for_pack.wait())
+                  sys.exit("Concierge failed!")
+              time.sleep(1)
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - run: uv tool install tox --with tox-uv
-      - run: python .github/wait-for-job.py needs-pack
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/download-artifact@v4
         with:
           pattern: "*-charm"
