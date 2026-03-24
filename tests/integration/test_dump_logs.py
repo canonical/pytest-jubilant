@@ -1,7 +1,4 @@
-"""Tests of the --dump-logs flag and logging related behaviour.
-
-Named to run after the pack tests, as the test files use the packed charm.
-"""
+"""Tests of the --dump-logs flag and logging related behaviour."""
 
 from __future__ import annotations
 
