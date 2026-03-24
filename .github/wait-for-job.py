@@ -26,33 +26,33 @@ def _main() -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     run_id = os.environ["GITHUB_RUN_ID"]
     cmd = ["gh", "api", f"/repos/{repo}/actions/runs/{run_id}/jobs", "--paginate", "--slurp"]
-    print(f"Waiting for job {job_name!r} (run {run_id}) ...")
+    print(f"Waiting for job {job_name!r} (run {run_id}) ...", flush=True)
     deadline = time.monotonic() + 3600
     for interval in itertools.chain([0], itertools.repeat(15)):
         if time.monotonic() >= deadline:
             print(f"Timed out waiting for {job_name!r}.", flush=True)
             sys.exit(1)
         if interval:
-            print(f"  Sleeping {interval} seconds before retry ...")
+            print(f"  Sleeping {interval} seconds before retry ...", flush=True)
             time.sleep(interval)
-        print(f"Running {cmd}")
+        print(f"Running {cmd}", flush=True)
         try:
             raw = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE)  # noqa: S603
         except subprocess.CalledProcessError as e:
-            print(f"  Warning: gh api error ({e.stderr}).")
+            print(f"  Warning: gh api error ({e.stderr}).", flush=True)
             continue
         jobs = [job for page in json.loads(raw) for job in page["jobs"]]
         job = _find_job(jobs, name=job_name)
         if job is None:
-            print("  Job not visible yet!")
+            print("  Job not visible yet!", flush=True)
             continue
         status = job["status"]  # queued | in_progress | completed
-        print(f"  Job {job_name!r} status: {status}")
+        print(f"  Job {job_name!r} status: {status}", flush=True)
         if status != "completed":
             continue
         conclusion = job.get("conclusion")  # success | failure | cancelled | skipped | ...
         if conclusion == "success":
-            print(f"Job {job_name!r} succeeded!")
+            print(f"Job {job_name!r} succeeded!", flush=True)
             sys.exit(0)
         print(f"Job {job_name!r} ended with: {conclusion}", flush=True)
         sys.exit(1)
