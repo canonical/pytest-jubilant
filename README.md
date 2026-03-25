@@ -7,87 +7,118 @@ And some cool stuff on top.
 
 ## `juju`
 This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
-See also the `--model` and `--no-teardown` options below, which modify its behavior.
+
+See also the `--model`, `--no-setup`, and `--no-teardown` options below, which modify its behavior.
+
+> [!TIP]
+> Use `jubilant.Juju` as the type annotation for the `juju` fixture in your tests for better linting and IDE autocompletions.
+
 Usage:
 
 ```python
-from jubilant import Juju, all_active
+# test_smoke.py
+"""Test that the charm can be deployed and go to active status."""
+
+import jubilant
 
 
-def test_deploy(juju: Juju):
+def test_deploy(juju: jubilant.Juju):
     juju.deploy("./foo.charm", "foo")
-    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
+    juju.wait(lambda status: jubilant.all_active(status, "foo"), timeout=1000)
 ```
+
+This test will spin up a temporary model named `jubilant-<randomhex>-test-smoke`. It will be torn down when the module-scoped `juju` fixture context exits.
+
 
 ## `temp_model_factory`
 This is a module-scoped fixture that manages temporary models for your test runs.
 It is what the `juju` fixture is using behind the scenes.
 
 Especially useful if you have test cases that require multiple models.
+
+> [!TIP]
+> Use `pytest_jubilant.TempModelFactory` as the type annotation for the `temp_model_factory` fixture in your tests for better linting and IDE autocompletions.
+>
+> Note that the exposed `TempModelFactory` type is just a protocol, and can't be used to directly create a temp model factory. Request the `temp_model_factory` fixture instead.
+
+Usage:
+
 ```python
+# test_cmr.py
+"""Test cross model relations."""
+
+import jubilant
 import pytest
-from jubilant import Juju, all_active
+import pytest_jubilant
 
 
-@pytest.fixture
-def istio(temp_model_factory):
+@pytest.fixture(scope="module")
+def istio(temp_model_factory: pytest_jubilant.TempModelFactory):
     yield temp_model_factory.get_juju(suffix="istio")
 
 
-def test_cmr(juju: Juju, istio: Juju):
+def test_offer_consume_relate(juju: jubilant.Juju, istio: jubilant.Juju):
     istio.deploy("istio-k8s", "istio")
     istio.wait(lambda status: all_active(status, "istio"), timeout=1000)
 
     juju.deploy("./foo.charm", "foo")
-    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
+    juju.wait(lambda status: jubilant.all_active(status, "foo"), timeout=1000)
 
     juju.cli("offer", "foo:bar")
     istio.cli("consume", f"{juju.model}:foo")
     istio.cli("relate", "istio", "foo:bar")
 ```
 
-This test will spin up two temporary models, one called `test-cmr-<randomhex>`, and one called `test-cmr-<randomhex>istio`,
-and tear them down on context exit.
+This test will spin up two temporary models, one called `jubilant-<randomhex>-test-cmr`, and one called `jubilant-<randomhex>-test-cmr-istio`. They'll be torn down when the module context exits.
 
-This fixture can be used with the options described below:
-- `pytest tests/test_cmr.py --model test-cmr-<randomhex>` will use `test-cmr-<randomhex>` as base name, and the suffixes you defined in the fixtures will give all generated models predictable names, which means that the tests will reuse the existing models (if found) or create new ones with those names.
-- `pytest tests/test_cmr.py --switch` will switch you to the 'base' model `test-cmr-<randomhex>` (not to one of the suffixed ones!).
+`pytest tests/integration --model my-prefix` will use `my-prefix` instead of `jubilant-<randomhex>`. The module names combined with the suffixes you defined in the fixtures will give all generated models predictable names. The tests will reuse the existing models (if found) or create new ones with those names.
 
 
 # Pytest CLI options
 
 ## `--model`
-Override the default model name generation (test module + random bits) and use a fixed model name instead.
-Do note that this model **will** be torn down at the end of the test run just like any other, so if you're targeting an existing model you care about, don't forget the `--no-teardown` flag!.
+By default, created Juju model names are prefixed with `jubilant-<randomhex>`, where `<randomhex>` is randomly generated each `pytest` run.
+Set `--model` on the commandline to use a fixed prefix instead.
+> [!WARNING]
+> Do note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-teardown` flag!.
 
-Usage:
+Usage example, assuming a single model per module:
 
-    pytest ./tests/integration -k test_foo --model "model2"
-    # runs the tests on a new 'model2' model and tears it down afterwards
+    pytest tests/integration/test_foo.py::test_something --model my-prefix
+    # runs the test on new 'my-prefix-test-foo' model and tears it down afterwards
 
-    juju add-model model1
-    pytest ./tests/integration -k test_foo --model "model1" --no-teardown
-    # runs the tests on the existing 'model1' model, and keeps it
+    juju add-model my-prefix-test-foo
+    pytest tests/integration/test_foo.py::test_something --model my-prefix --no-teardown
+    # runs the tests on the existing 'my-prefix-test-foo' model and keeps it
+    # note that we want to run the setup tests to deploy the charm(s) etc
+
+    pytest tests/integration/test_foo.py::test_something --model my-prefix --no-setup --no-teardown
+    # runs the tests on an existing 'my-prefix-test-foo' model, skipping setup tests, and keeps it
+    # we might run this after the previous example which ran setup tests and didn't tear down
 
 
 ## `--switch`
-Switch to the (randomly-named?) model that is currently in scope, so you can keep an
+Switch to the (possibly randomly-named) model that is currently in scope, so you can keep an
 eye on the juju status as the tests progress.
 (Won't work well if you're running multiple test modules in parallel.)
+Only switches to models created by the `juju` fixture, not those created by `temp_model_factory`.
 
 Usage:
 
-    pytest ./tests/integration -k test-something --switch
-    # will switch you to the test-something-09i123451 (random bits may differ) model as soon as it's created
+    pytest ./tests/integration -k test_something --switch
+    # will switch you to the 'jubilant-<randomhex>-<module>' model as soon as it's created
 
-    pytest ./tests/integration -k test-something --model mymodel --switch
-    # will switch you to the `mymodel` model as soon as it's created
+    pytest ./tests/integration -k test_something --model my-prefix --switch
+    # will switch you to the 'my-prefix-<module>' model as soon as it's created
+
 
 ## `--no-teardown`
 Skip all tests marked with `teardown` and skip destroying the models.
 Useful to inspect the state of a model after a (failed) test run.
-Warning: The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
-Be sure to use `--no-teardown` instead.
+
+> [!WARNING]
+> The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
+> Be sure to use `--no-teardown` instead.
 
 Usage:
     pytest ./tests/integration --no-teardown
@@ -99,7 +130,7 @@ See [this article](https://discourse.charmhub.io/t/14006) for the idea behind th
 Usage:
 
     pytest ./tests/integration --no-teardown # make a note of the temporary model name
-    pytest ./tests/integration --model <temporary model name> --no-setup
+    pytest ./tests/integration --model <temporary model prefix> --no-setup
 
 
 ## `--dump-logs`
@@ -115,7 +146,7 @@ Usage:
 
     pytest ./tests/integration ./integration/test_ingress.py --model foo --dump-logs=./debug_logs
     # once the tests are done, you'll find the logs in
-    # ./debug_logs/foo-jdl.txt
+    # ./debug_logs/foo-test-ingress-juju-debug.log
 
     pytest ./tests/integration ./integration/test_ingress.py --dump-logs=""
     # no logs will be saved
@@ -143,6 +174,7 @@ def test_deploy(juju):
 def test_relate(juju):
     juju.integrate("A", "B")
 ```
+
 
 ## `teardown`
 Marker for tests that destroy (parts of) a model.

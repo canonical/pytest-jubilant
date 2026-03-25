@@ -37,10 +37,10 @@ def test_dump_logs_default_path(pytester):
     result = pytester.runpytest("--dump-logs")
     result.assert_outcomes(passed=1)
 
-    foo_log_path = pytester.path / ".logs" / "test-file-testing-foo-juju-debug.log"
+    foo_log_path = pytester.path / ".logs" / "jubilant-deadbeef-test-file-foo-juju-debug.log"
     assert foo_log_path.exists()
     assert foo_log_path.read_text() == "stdout patched by conftest.py"
-    bar_log_path = pytester.path / ".logs" / "test-file-testing-bar-juju-debug.log"
+    bar_log_path = pytester.path / ".logs" / "jubilant-deadbeef-test-file-bar-juju-debug.log"
     assert bar_log_path.exists()
     assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
@@ -53,10 +53,10 @@ def test_dump_logs_custom_path(pytester, tmp_path):
     result = pytester.runpytest("--dump-logs", str(custom_dir))
     result.assert_outcomes(passed=1)
 
-    foo_log_path = custom_dir / "test-file-testing-foo-juju-debug.log"
+    foo_log_path = custom_dir / "jubilant-deadbeef-test-file-foo-juju-debug.log"
     assert foo_log_path.exists()
     assert foo_log_path.read_text() == "stdout patched by conftest.py"
-    bar_log_path = custom_dir / "test-file-testing-bar-juju-debug.log"
+    bar_log_path = custom_dir / "jubilant-deadbeef-test-file-bar-juju-debug.log"
     assert bar_log_path.exists()
     assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
@@ -78,11 +78,11 @@ def test_fail(temp_model_factory):
     result.assert_outcomes(failed=1)
 
     # We emit the last 1000 lines of `juju debug-log` for each model if tests fail.
-    foo_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-foo:"
+    foo_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-test-file-foo:"
     foo_lines = result.stdout.get_lines_after(f"*{foo_msg}*")  # Match with fnmatch.
     assert foo_lines[0] == "stdout patched by conftest.py"  # Mocked call to Juju CLI.
-    assert foo_lines[1] == "--- end of `juju debug-log` for model model-t-foo ---"
+    assert foo_lines[1] == "--- end of `juju debug-log` for model model-t-test-file-foo ---"
 
     # The full logs are still written on failure with --dump-logs.
-    foo_log_path = custom_dir / "model-t-foo-juju-debug.log"
+    foo_log_path = custom_dir / "model-t-test-file-foo-juju-debug.log"
     assert foo_log_path.exists()

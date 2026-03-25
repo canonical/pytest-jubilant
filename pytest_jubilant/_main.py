@@ -7,11 +7,11 @@
 from __future__ import annotations
 
 import logging
+import pathlib
 import secrets
 import sys
 import time
 import typing
-from pathlib import Path
 from typing import Callable
 
 import jubilant
@@ -27,13 +27,13 @@ _LOG_WAIT = 2.0  # Time to wait before processing logs if we need them.
 _LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser):
     group = parser.getgroup("jubilant")
     group.addoption(
         "--model",
         action="store",
         default=None,
-        help="Juju model name to target.",
+        help="Prefix for Juju model names.",
     )
     group.addoption(
         "--no-setup",
@@ -57,15 +57,15 @@ def pytest_addoption(parser):
         "--dump-logs",
         action="store",
         nargs="?",
-        const=Path(".logs"),
+        const=pathlib.Path(".logs"),
         default=None,
-        type=Path,
+        type=pathlib.Path,
         help="Dump the juju debug-log for each model prior to teardown. "
         "The default dump location is './.logs'.",
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config):
     config.addinivalue_line("markers", "setup: tests that setup some parts of the environment.")
     config.addinivalue_line(
         "markers", "teardown: tests that tear down some parts of the environment."
@@ -84,7 +84,7 @@ def pytest_configure(config):
         raise pytest.UsageError(msg)
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items):
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
     if config.getoption("--no-teardown"):
         skipper = pytest.mark.skip(reason="--no-teardown provided.")
         for item in items:
@@ -98,26 +98,28 @@ def pytest_collection_modifyitems(config: pytest.Config, items):
                 item.add_marker(skipper)
 
 
-class TempModelFactory:
+class TempModelFactory(typing.Protocol):
+    def get_juju(self, suffix: str) -> jubilant.Juju: ...
+
+
+class _TempModelFactory:
     """Manages temporary models for testing."""
 
     def __init__(
         self,
-        prefix: str,
-        randbits: str | None = None,
+        model_prefix: str,
         allow_existing_model: bool = False,
-        log_path: Path | None = None,
+        log_path: pathlib.Path | None = None,
         add_model: bool = False,
     ):
-        self.prefix = prefix
-        self.randbits = randbits
+        self._model_prefix = model_prefix
         self._models: dict[str, jubilant.Juju] = {}
         self._allow_existing_model = allow_existing_model
         self._log_path = log_path
         self._add_model = add_model
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
-        model_name = "-".join(filter(None, (self.prefix, self.randbits, suffix)))
+        model_name = f"{self._model_prefix}-{suffix}" if suffix else self._model_prefix
         if model_name in self._models:
             raise ValueError(
                 f"model {model_name} already registered on this temp_model factory. "
@@ -166,6 +168,12 @@ class TempModelFactory:
             juju.destroy_model(model, destroy_storage=True, force=force)
 
 
+@pytest.fixture(scope="session")
+def _session_prefix() -> str:  # pyright: ignore[reportUnusedFunction]
+    """Generate a prefix for the session."""
+    return f"jubilant-{secrets.token_hex(4)}"
+
+
 @pytest.fixture(scope="module")
 def _sleep_once():  # pyright: ignore[reportUnusedFunction]
     """Return a function that sleeps when called for the first time.
@@ -185,22 +193,20 @@ def _sleep_once():  # pyright: ignore[reportUnusedFunction]
 
 
 @pytest.fixture(scope="module")
-def temp_model_factory(request: pytest.FixtureRequest, _sleep_once: Callable[[], None]):
-    user_model = typing.cast("str | None", request.config.getoption("--model"))
-    if user_model:
-        prefix = user_model
-        randbits = None
-    else:
-        module_name = typing.cast("str", request.module.__name__)  # type: ignore
-        prefix = (module_name.rpartition(".")[-1]).replace("_", "-")
-        randbits = secrets.token_hex(4)
-    dump_logs = typing.cast("Path | None", request.config.getoption("--dump-logs"))
-    factory = TempModelFactory(
-        prefix=prefix,
-        randbits=randbits,
-        allow_existing_model=bool(user_model),
+def temp_model_factory(
+    request: pytest.FixtureRequest,
+    _sleep_once: Callable[[], None],
+    _session_prefix: str,
+):
+    user_prefix = typing.cast("str | None", request.config.getoption("--model"))
+    module_name = typing.cast("str", request.module.__name__)  # type: ignore
+    module_part = module_name.rpartition(".")[-1].replace("_", "-")
+    dump_logs = typing.cast("pathlib.Path | None", request.config.getoption("--dump-logs"))
+    factory = _TempModelFactory(
+        model_prefix=f"{user_prefix or _session_prefix}-{module_part}",
+        allow_existing_model=bool(user_prefix),
         log_path=dump_logs,
-        add_model=not request.config.getoption("--no-setup"),
+        add_model=not typing.cast("bool", request.config.getoption("--no-setup")),
     )
 
     yield factory
