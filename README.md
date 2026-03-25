@@ -89,6 +89,11 @@ Usage example, assuming a single model per module:
     juju add-model my-prefix-test-foo
     pytest tests/integration/test_foo.py::test_something --prefix my-prefix --no-teardown
     # runs the tests on the existing 'my-prefix-test-foo' model and keeps it
+    # note that we want to run the setup tests to deploy the charm(s) etc
+
+    pytest tests/integration/test_foo.py::test_something --prefix my-prefix --no-setup --no-teardown
+    # runs the tests on an existing 'my-prefix-test-foo' model, skipping setup tests, and keeps it
+    # we might run this after the previous example which ran setup tests and didn't tear down
 
 
 ## `--switch`
@@ -140,7 +145,7 @@ Usage:
 
     pytest ./tests/integration ./integration/test_ingress.py --prefix foo --dump-logs=./debug_logs
     # once the tests are done, you'll find the logs in
-    # ./debug_logs/foo-test-ingress-jdl.txt
+    # ./debug_logs/foo-test-ingress-juju-debug.log
 
     pytest ./tests/integration ./integration/test_ingress.py --dump-logs=""
     # no logs will be saved
