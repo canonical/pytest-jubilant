@@ -17,7 +17,7 @@ def _patch_log_wait():
 @pytest.fixture(scope="session", autouse=True)
 def _global_random_bits_mock():
     """Mock out secrets.token_hex so we can have predictable model names."""
-    with unittest.mock.patch("secrets.token_hex", new=lambda _: "testing"):
+    with unittest.mock.patch("secrets.token_hex", new=lambda _: "deadbeef"):
         yield
 
 

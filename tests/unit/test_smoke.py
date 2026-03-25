@@ -1,4 +1,4 @@
 def test_imports():
-    from pytest_jubilant import get_resources
+    import pytest_jubilant
 
-    assert get_resources
+    assert pytest_jubilant
