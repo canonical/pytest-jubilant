@@ -190,46 +190,6 @@ def test_destroy(juju):
     juju.remove_application("B")
 ```
 
-# Utilities
-
-## `get_resources`
-
-`get_resources` will parse a `charmcraft.yaml` file and return a mapping from resources to their `upstream-source`
-field as is standard convention.
-
-```yaml
-# example /path/to/foo-charm-repo-root-dir/charmcraft.yaml
-
-# [snip]
-resources:
-  nginx-image:
-    type: oci-image
-    description: OCI image for nginx
-    upstream-source: ubuntu/nginx:1.24-24.04_beta
-  nginx-prometheus-exporter-image:
-    type: oci-image
-    description: OCI image for nginx-prometheus-exporter
-    upstream-source: nginx/nginx-prometheus-exporter:1.1.0
-```
-
-Usage:
-
-```python
-from pytest_jubilant import get_resources
-import pytest
-
-
-@pytest.mark.setup
-def test_deploy_charm(juju):
-    juju.deploy(
-        os.environ["CHARM_PATH"],
-        # the resources can only be inferred from the charm's metadata/charmcraft yaml
-        # if you use the `upstream-source` convention
-        resources=get_resources(charm_root),
-        num_units=3,
-    )
-```
-
 # DEVELOPERS
 
 To release:
