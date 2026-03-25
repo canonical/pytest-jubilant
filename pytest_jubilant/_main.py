@@ -17,6 +17,9 @@ from typing import Callable
 import jubilant
 import pytest
 
+if typing.TYPE_CHECKING:
+    from _pytest.terminal import TerminalReporter
+
 # If the test failure occurs in the middle of a Juju operation, like processing an action,
 # then the logs for the operation in question might not be fully processed by Juju yet.
 # Testing with a mid-action failure several hundred times, 2 seconds seems like a reliable
@@ -25,6 +28,9 @@ import pytest
 # cases where the logs were missing the latest lines.
 _LOG_WAIT = 2.0  # Time to wait before processing logs if we need them.
 _LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
+
+# Unique per-session key to stash the model prefix for later output.
+_MODEL_PREFIX_KEY = pytest.StashKey[str]()
 
 
 def pytest_addoption(parser: pytest.Parser):
@@ -82,6 +88,30 @@ def pytest_configure(config: pytest.Config):
                 ", the model(s) identified by --model *will* be torn down!"
             )
         raise pytest.UsageError(msg)
+
+
+def pytest_terminal_summary(
+    terminalreporter: TerminalReporter,
+    exitstatus: pytest.ExitCode,
+    config: pytest.Config,
+):
+    """Print a usage hint after the test summary."""
+    prefix = config.stash.get(_MODEL_PREFIX_KEY, default=None)
+    if prefix is None:  # nothing that used temp_model_factory ran
+        return
+    terminalreporter.write_sep("-", "jubilant")
+    if config.getoption("--no-teardown"):
+        terminalreporter.write_line(
+            "Models were not torn down. To rerun tests on these models"
+            " and skip setup tests and model teardown, pass the following:"
+        )
+        terminalreporter.write_line(f"--no-setup --no-teardown --model {prefix}")
+    else:
+        terminalreporter.write_line(
+            "Models were torn down. To keep models available for subsequent"
+            " test runs or manual debugging, pass the following:"
+        )
+        terminalreporter.write_line("--no-teardown")
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
@@ -169,9 +199,12 @@ class _TempModelFactory:
 
 
 @pytest.fixture(scope="session")
-def _session_prefix() -> str:  # pyright: ignore[reportUnusedFunction]
-    """Generate a prefix for the session."""
-    return f"jubilant-{secrets.token_hex(4)}"
+def _model_prefix(request: pytest.FixtureRequest) -> str:  # pyright: ignore[reportUnusedFunction]
+    """Generate a prefix for the session or use the user-provided one."""
+    user_prefix = typing.cast("str | None", request.config.getoption("--model"))
+    prefix = user_prefix or f"jubilant-{secrets.token_hex(4)}"
+    request.config.stash[_MODEL_PREFIX_KEY] = prefix
+    return prefix
 
 
 @pytest.fixture(scope="module")
@@ -196,15 +229,14 @@ def _sleep_once():  # pyright: ignore[reportUnusedFunction]
 def temp_model_factory(
     request: pytest.FixtureRequest,
     _sleep_once: Callable[[], None],
-    _session_prefix: str,
+    _model_prefix: str,
 ):
-    user_prefix = typing.cast("str | None", request.config.getoption("--model"))
     module_name = typing.cast("str", request.module.__name__)  # type: ignore
     module_part = module_name.rpartition(".")[-1].replace("_", "-")
     dump_logs = typing.cast("pathlib.Path | None", request.config.getoption("--dump-logs"))
     factory = _TempModelFactory(
-        model_prefix=f"{user_prefix or _session_prefix}-{module_part}",
-        allow_existing_model=bool(user_prefix),
+        model_prefix=f"{_model_prefix}-{module_part}",
+        allow_existing_model=bool(request.config.getoption("--model")),
         log_path=dump_logs,
         add_model=not typing.cast("bool", request.config.getoption("--no-setup")),
     )
