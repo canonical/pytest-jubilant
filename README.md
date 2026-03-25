@@ -27,7 +27,7 @@ def test_deploy(juju: jubilant.Juju):
     juju.wait(lambda status: jubilant.all_active(status, "foo"), timeout=1000)
 ```
 
-This test will spin up a temporary model named `jubilant-<randomhex>-test-smoke`.
+This test will spin up a temporary model named `jubilant-<randomhex>-test-smoke`. It will be torn down when the module-scoped `juju` fixture context exits.
 
 
 ## `temp_model_factory`
@@ -69,7 +69,7 @@ def test_offer_consume_relate(juju: jubilant.Juju, istio: jubilant.Juju):
     istio.cli("relate", "istio", "foo:bar")
 ```
 
-This test will spin up two temporary models, one called `jubilant-<randomhex>-test-cmr`, and one called `jubilant-<randomhex>-test-cmr-istio`, and tear them down on context exit.
+This test will spin up two temporary models, one called `jubilant-<randomhex>-test-cmr`, and one called `jubilant-<randomhex>-test-cmr-istio`. They'll be torn down when the module context exits.
 
 `pytest tests/integration --model my-prefix` will use `my-prefix` instead of `jubilant-<randomhex>`. The module names combined with the suffixes you defined in the fixtures will give all generated models predictable names. The tests will reuse the existing models (if found) or create new ones with those names.
 
@@ -79,7 +79,8 @@ This test will spin up two temporary models, one called `jubilant-<randomhex>-te
 ## `--model`
 By default, created Juju model names are prefixed with `jubilant-<randomhex>`, where `<randomhex>` is randomly generated each `pytest` run.
 Set `--model` on the commandline to use a fixed prefix instead.
-Do note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-teardown` flag!.
+> [!WARNING]
+> Do note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-teardown` flag!.
 
 Usage example, assuming a single model per module:
 
