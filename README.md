@@ -8,7 +8,7 @@ And some cool stuff on top.
 ## `juju`
 This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
 
-See also the `--prefix`, `--no-setup`, and `--no-teardown` options below, which modify its behavior.
+See also the `--model`, `--no-setup`, and `--no-teardown` options below, which modify its behavior.
 
 > [!TIP]
 > Use `jubilant.Juju` as the type annotation for the `juju` fixture in your tests for better linting and IDE autocompletions.
@@ -71,27 +71,27 @@ def test_offer_consume_relate(juju: jubilant.Juju, istio: jubilant.Juju):
 
 This test will spin up two temporary models, one called `jubilant-<randomhex>-test-cmr`, and one called `jubilant-<randomhex>-test-cmr-istio`, and tear them down on context exit.
 
-`pytest tests/integration --prefix my-prefix` will use `my-prefix` instead of `jubilant-<randomhex>`. The module names combined with the suffixes you defined in the fixtures will give all generated models predictable names. The tests will reuse the existing models (if found) or create new ones with those names.
+`pytest tests/integration --model my-prefix` will use `my-prefix` instead of `jubilant-<randomhex>`. The module names combined with the suffixes you defined in the fixtures will give all generated models predictable names. The tests will reuse the existing models (if found) or create new ones with those names.
 
 
 # Pytest CLI options
 
-## `--prefix`
+## `--model`
 By default, created Juju model names are prefixed with `jubilant-<randomhex>`, where `<randomhex>` is randomly generated each `pytest` run.
-Set `--prefix` on the commandline to use a fixed prefix instead.
+Set `--model` on the commandline to use a fixed prefix instead.
 Do note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-teardown` flag!.
 
 Usage example, assuming a single model per module:
 
-    pytest tests/integration/test_foo.py::test_something --prefix my-prefix
+    pytest tests/integration/test_foo.py::test_something --model my-prefix
     # runs the test on new 'my-prefix-test-foo' model and tears it down afterwards
 
     juju add-model my-prefix-test-foo
-    pytest tests/integration/test_foo.py::test_something --prefix my-prefix --no-teardown
+    pytest tests/integration/test_foo.py::test_something --model my-prefix --no-teardown
     # runs the tests on the existing 'my-prefix-test-foo' model and keeps it
     # note that we want to run the setup tests to deploy the charm(s) etc
 
-    pytest tests/integration/test_foo.py::test_something --prefix my-prefix --no-setup --no-teardown
+    pytest tests/integration/test_foo.py::test_something --model my-prefix --no-setup --no-teardown
     # runs the tests on an existing 'my-prefix-test-foo' model, skipping setup tests, and keeps it
     # we might run this after the previous example which ran setup tests and didn't tear down
 
@@ -107,7 +107,7 @@ Usage:
     pytest ./tests/integration -k test_something --switch
     # will switch you to the 'jubilant-<randomhex>-<module>' model as soon as it's created
 
-    pytest ./tests/integration -k test_something --prefix my-prefix --switch
+    pytest ./tests/integration -k test_something --model my-prefix --switch
     # will switch you to the 'my-prefix-<module>' model as soon as it's created
 
 
@@ -129,7 +129,7 @@ See [this article](https://discourse.charmhub.io/t/14006) for the idea behind th
 Usage:
 
     pytest ./tests/integration --no-teardown # make a note of the temporary model name
-    pytest ./tests/integration --prefix <temporary model prefix> --no-setup
+    pytest ./tests/integration --model <temporary model prefix> --no-setup
 
 
 ## `--dump-logs`
@@ -143,7 +143,7 @@ Usage:
     # once the tests are done, you'll find the logs in
     # ./debug_logs/test-ingress-c372ef49-jdl.txt (random bits may vary).
 
-    pytest ./tests/integration ./integration/test_ingress.py --prefix foo --dump-logs=./debug_logs
+    pytest ./tests/integration ./integration/test_ingress.py --model foo --dump-logs=./debug_logs
     # once the tests are done, you'll find the logs in
     # ./debug_logs/foo-test-ingress-juju-debug.log
 

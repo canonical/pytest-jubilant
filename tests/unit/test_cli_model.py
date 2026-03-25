@@ -10,17 +10,17 @@ TEST_OTHER_CLI_ERROR = (Path(__file__).parent / "cli_model_tests_other_cli_error
 
 
 def test_explicit_model_allows_collisions(pytester: pytest.Pytester):
-    """If ``--prefix`` is set, an existing model error is allowed (and expected)."""
+    """If ``--model`` is set, an existing model error is allowed (and expected)."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_ALREADY_EXISTS)
 
-    result = pytester.runpytest("--prefix", "my-fancy-model")
+    result = pytester.runpytest("--model", "my-fancy-model")
 
     result.assert_outcomes(passed=1)
 
 
 def test_collision_without_explicit_model_raises(pytester: pytest.Pytester):
-    """Without ``--prefix``, an existing model error is raised if there's a collision."""
+    """Without ``--model``, an existing model error is raised if there's a collision."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_ALREADY_EXISTS)
 
@@ -39,18 +39,18 @@ def test_collision_without_explicit_model_raises(pytester: pytest.Pytester):
 
 
 def test_explicit_model_doesnt_prevent_other_errors(pytester: pytest.Pytester):
-    """If ``--prefix`` is set, an existing model error is allowed (and expected)."""
+    """If ``--model`` is set, an existing model error is allowed (and expected)."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_OTHER_CLI_ERROR)
 
-    result = pytester.runpytest("--prefix", "my-fancy-model")
+    result = pytester.runpytest("--model", "my-fancy-model")
 
     result.assert_outcomes(failed=1)
     assert "ERROR something else" in result.stdout.str()
 
 
 def test_other_error_without_explicit_model_raises(pytester: pytest.Pytester):
-    """Without ``--prefix``, an existing model error is raised if there's a collision."""
+    """Without ``--model``, an existing model error is raised if there's a collision."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_OTHER_CLI_ERROR)
 

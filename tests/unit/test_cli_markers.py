@@ -34,13 +34,13 @@ def test_default(pytester: pytest.Pytester):
 def test_no_setup_ok(pytester: pytest.Pytester):
     """``--no-setup`` means tests marked ``setup`` aren't run, and models aren't created.
 
-    This is only permitted if ``--prefix`` is also passed.
+    This is only permitted if ``--model`` is also passed.
     We'll tear down the models unless ``--no-teardown`` is also passed.
     """
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-setup", "--prefix", "model-t")
+    result = pytester.runpytest("--no-setup", "--model", "model-t")
 
     result.assert_outcomes(passed=2, skipped=1)
     assert not (pytester.path / "added.txt").exists()
@@ -52,7 +52,7 @@ def test_no_setup_ok(pytester: pytest.Pytester):
 
 
 def test_no_setup_without_model_is_an_error(pytester: pytest.Pytester):
-    """It's an immediate error to pass ``--no-setup`` without also pasing ``--prefix``."""
+    """It's an immediate error to pass ``--no-setup`` without also pasing ``--model``."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -60,7 +60,7 @@ def test_no_setup_without_model_is_an_error(pytester: pytest.Pytester):
 
     assert result.ret == 4  # Exit code for a pytest.UsageError
     result.stderr.re_match_lines([
-        ".*--no-setup cannot be specified without --prefix.*",
+        ".*--no-setup cannot be specified without --model.*",
         ".*unless you specify --no-teardown, the model.*",
     ])
 
@@ -84,12 +84,12 @@ def test_no_teardown(pytester: pytest.Pytester):
 def test_no_setup_and_no_teardown_ok(pytester: pytest.Pytester):
     """``--no-setup`` and ``--no-teardown`` both being passed means neither are run.
 
-    This only works if ``--prefix`` is specified.
+    This only works if ``--model`` is specified.
     """
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-setup", "--no-teardown", "--prefix", "model-t")
+    result = pytester.runpytest("--no-setup", "--no-teardown", "--model", "model-t")
 
     result.assert_outcomes(passed=1, skipped=2)
     assert not (pytester.path / "added.txt").exists()
@@ -97,14 +97,14 @@ def test_no_setup_and_no_teardown_ok(pytester: pytest.Pytester):
 
 
 def test_no_setup_and_no_teardown_without_model_is_an_error(pytester: pytest.Pytester):
-    """``--no-setup`` and ``--no-teardown`` both being passed without ``--prefix`` is an error."""
+    """``--no-setup`` and ``--no-teardown`` both being passed without ``--model`` is an error."""
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
     result = pytester.runpytest("--no-setup", "--no-teardown")
 
     assert result.ret == 4  # Exit code for a pytest.UsageError
-    result.stderr.re_match_lines([".*--no-setup cannot be specified without --prefix.*"])
+    result.stderr.re_match_lines([".*--no-setup cannot be specified without --model.*"])
 
 
 def test_m_setup(pytester: pytest.Pytester):
