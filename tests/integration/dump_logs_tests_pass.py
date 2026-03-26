@@ -20,7 +20,7 @@ def models(juju_factory: pytest_jubilant.JujuFactory):
     yield foo, bar
 
 
-@pytest.mark.setup
+@pytest.mark.juju_setup
 def test_deploy_and_pass(
     log_actions_charm: pathlib.Path, models: tuple[jubilant.Juju, jubilant.Juju]
 ):
