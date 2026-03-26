@@ -184,16 +184,18 @@ The file naming scheme is:
 
 #### Usage:
 
-    pytest tests/integration/test_ingress.py --juju-dump-logs=debug_logs
-    # Once the tests are done, you'll find the logs in:
-    # ./debug_logs/jubilant-abcd1234-test-ingress-juju-debug.log
+```shell
+pytest tests/integration/test_ingress.py --juju-dump-logs=debug_logs
+# Once the tests are done, you'll find the logs in:
+# ./debug_logs/jubilant-abcd1234-test-ingress-juju-debug.log
 
-    pytest tests/integration/test_ingress.py --juju-model foo --juju-dump-logs
-    # Once the tests are done, you'll find the logs in the default directory:
-    # ./.logs/foo-test-ingress-juju-debug.log
+pytest tests/integration/test_ingress.py --juju-model foo --juju-dump-logs
+# Once the tests are done, you'll find the logs in the default directory:
+# ./.logs/foo-test-ingress-juju-debug.log
 
-    pytest integration/test_ingress.py
-    # No logs will be saved.
+pytest integration/test_ingress.py
+# No logs will be saved.
+```
 
 
 ## Markers
