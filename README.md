@@ -92,9 +92,11 @@ Skip all tests marked with `juju_setup` and don't create any new models. This op
 
 #### Usage:
 
-    pytest tests/integration --no-juju-teardown
-    # Check the last line of output for the <model prefix>!
-    pytest tests/integration --no-juju-setup --juju-model <model prefix>
+```shell
+pytest tests/integration --no-juju-teardown
+# Check the last line of output for the <model prefix>!
+pytest tests/integration --no-juju-setup --juju-model <model prefix>
+```
 
 
 ### `--no-juju-teardown`
@@ -107,7 +109,10 @@ Useful to inspect the state of a model after a (failed) test run.
 > Be sure to use `--no-juju-teardown` instead.
 
 #### Usage:
-    pytest tests/integration --no-juju-teardown
+
+```shell
+pytest tests/integration --no-juju-teardown
+```
 
 > [!TIP]
 > The last line of output will tell you the `--juju-model` value to use if you want to rerun your tests using the same models. Be sure to pass `--no-juju-setup` as well to avoid failures when trying to perform setup steps that are already done.
@@ -122,21 +127,23 @@ By default, created Juju model names are prefixed with `jubilant-<randomhex>`, w
 
 #### Usage:
 
-    pytest tests/integration/test_foo.py --juju-model my-prefix
-    # Runs the test on new 'my-prefix-test-foo' model and tears it down afterwards.
+```shell
+pytest tests/integration/test_foo.py --juju-model my-prefix
+# Runs the test on new 'my-prefix-test-foo' model and tears it down afterwards.
 
-    pytest tests/integration/test_foo.py --juju-model my-prefix --no-juju-teardown
-    # Runs the test on new 'my-prefix-test-foo' model and keeps it.
+pytest tests/integration/test_foo.py --juju-model my-prefix --no-juju-teardown
+# Runs the test on new 'my-prefix-test-foo' model and keeps it.
 
-    pytest tests/integration/test_foo.py --juju-model my-prefix --no-juju-setup --no-juju-teardown
-    # Runs the test on the existing 'my-prefix-test-foo' model and keeps it.
-    # Note that we  dont' want to run the setup tests since they already ran.
+pytest tests/integration/test_foo.py --juju-model my-prefix --no-juju-setup --no-juju-teardown
+# Runs the test on the existing 'my-prefix-test-foo' model and keeps it.
+# Note that we  dont' want to run the setup tests since they already ran.
 
-    juju add-model my-prefix-test-bar  # A whole new model.
-    pytest tests/integration/test_bar.py --juju-model my-prefix --no-juju-teardown
-    # Runs the test on the existing 'my-prefix-test-bar' model and keeps it.
-    # Note that we want to run the setup tests to deploy the charm(s) etc.
-    # since this is a new model.
+juju add-model my-prefix-test-bar  # A whole new model.
+pytest tests/integration/test_bar.py --juju-model my-prefix --no-juju-teardown
+# Runs the test on the existing 'my-prefix-test-bar' model and keeps it.
+# Note that we want to run the setup tests to deploy the charm(s) etc.
+# since this is a new model.
+```
 
 
 ### `--juju-switch`
@@ -147,11 +154,13 @@ Only switches to models created by the `juju` fixture, not those created by `juj
 
 #### Usage:
 
-    pytest tests/integration -k test_something --juju-switch
-    # will switch you to the 'jubilant-<randomhex>-<module>' model as soon as it's created
+```shell
+pytest tests/integration -k test_something --juju-switch
+# will switch you to the 'jubilant-<randomhex>-<module>' model as soon as it's created
 
-    pytest tests/integration -k test_something --juju-model my-prefix --juju-switch
-    # will switch you to the 'my-prefix-<module>' model as soon as it's created
+pytest tests/integration -k test_something --juju-model my-prefix --juju-switch
+# will switch you to the 'my-prefix-<module>' model as soon as it's created
+```
 
 
 ### `--juju-dump-logs`
