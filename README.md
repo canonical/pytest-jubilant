@@ -238,3 +238,8 @@ def test_destroy(juju: jubilant.Juju):
     juju.remove_application("A")
     juju.remove_application("B")
 ```
+
+## Next steps
+
+- Read our [Code of conduct](./CODE_OF_CONDUCT.md) and join our [chat](https://matrix.to/#/#charmhub-ops:ubuntu.com) and [forum](https://discourse.charmhub.io/) or [open an issue](https://github.com/canonical/pytest-jubilant/issues).
+- Read our [CONTRIBUTING guide](./CONTRIBUTING.md) and contribute!
