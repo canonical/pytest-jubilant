@@ -2,17 +2,17 @@
 # Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Minimal test charm for pack and deploy."""
+"""Test charm with log actions for use in integration tests."""
 
 import logging
 
 import ops
 
-logger = logging.getLogger("simple-charm")
+logger = logging.getLogger("log-actions-charm")
 logger.setLevel(logging.DEBUG)
 
 
-class SimpleCharm(ops.CharmBase):
+class LogActionsCharm(ops.CharmBase):
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
         framework.observe(self.on.collect_unit_status, self._on_collect_unit_status)
@@ -33,4 +33,4 @@ class SimpleCharm(ops.CharmBase):
 
 
 if __name__ == "__main__":  # pragma: nocover
-    ops.main(SimpleCharm)
+    ops.main(LogActionsCharm)

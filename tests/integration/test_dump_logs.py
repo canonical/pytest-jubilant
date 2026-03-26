@@ -11,11 +11,14 @@ if typing.TYPE_CHECKING:
 
 pytest_plugins = ["pytester"]
 
+CONFTEST = (pathlib.Path(__file__).parent / "conftest.py").read_text()
+
 
 def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Path):
     test_file1 = (pathlib.Path(__file__).parent / "dump_logs_tests_fail.py").read_text()
     test_file2 = test_file1.replace('get_juju("foo1")', 'get_juju("foo2")')
     test_file2 = test_file2.replace('get_juju("bar1")', 'get_juju("bar2")')
+    pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file1=test_file1, test_file2=test_file2)  # type: ignore
     custom_dir = tmp_path / "custom-logs"
 
@@ -107,6 +110,7 @@ def test_juju_debug_log_on_pass(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     test_file1 = (pathlib.Path(__file__).parent / "dump_logs_tests_pass.py").read_text()
     test_file2 = test_file1.replace('get_juju("foo1")', 'get_juju("foo2")')
     test_file2 = test_file2.replace('get_juju("bar1")', 'get_juju("bar2")')
+    pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file1=test_file1, test_file2=test_file2)  # type: ignore
     custom_dir = tmp_path / "custom-logs"
 

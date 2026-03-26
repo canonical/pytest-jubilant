@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import os
-import pathlib
 import typing
 
 import jubilant
 import pytest
 
 if typing.TYPE_CHECKING:
+    import pathlib
+
     import pytest_jubilant
 
 
@@ -20,18 +20,13 @@ def models(juju_factory: pytest_jubilant.JujuFactory):
     yield foo, bar
 
 
-@pytest.fixture(scope="module")
-def charm():
-    charm_path = pathlib.Path(os.environ["SIMPLE_CHARM_PATH"])
-    assert charm_path.is_file()
-    yield charm_path
-
-
-@pytest.mark.juju_setup
-def test_deploy_and_then_fail(models: tuple[jubilant.Juju, jubilant.Juju], charm: pathlib.Path):
+@pytest.mark.setup
+def test_deploy_and_then_fail(
+    log_actions_charm: pathlib.Path, models: tuple[jubilant.Juju, jubilant.Juju]
+):
     foo, bar = models
-    foo.deploy(charm)
-    bar.deploy(charm)
+    foo.deploy(log_actions_charm, app="log")
+    bar.deploy(log_actions_charm, app="log")
     foo.wait(jubilant.all_active, timeout=900)
     bar.wait(jubilant.all_active)
-    foo.run("simple/0", "log-fail")
+    foo.run("log/0", "log-fail")
