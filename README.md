@@ -137,7 +137,8 @@ pytest tests/integration/test_foo.py --juju-model my-prefix --no-juju-teardown
 pytest tests/integration/test_foo.py --juju-model my-prefix --no-juju-setup --no-juju-teardown
 # Runs the test on the existing 'my-prefix-test-foo' model and keeps it.
 # Note that we  dont' want to run the setup tests since they already ran.
-
+```
+```shell
 juju add-model my-prefix-test-bar  # A whole new model.
 pytest tests/integration/test_bar.py --juju-model my-prefix --no-juju-teardown
 # Runs the test on the existing 'my-prefix-test-bar' model and keeps it.
