@@ -6,12 +6,33 @@ Jubilant is a Python library that wraps the [Juju](https://canonical.com/juju) C
 
 > Read more: [pytest-jubilant's design goals](./CONTRIBUTING.md#design-goals)
 
+
+## Getting started
+
+`pytest-jubilant`'s features are available to use as long as it's installed in the Python environment where you're invoking `pytest`. The best way to ensure this is to add both `pytest` and `pytest-jubilant` to your dependencies like this.
+```toml
+# pyproject.toml
+[dependency-groups]
+integration = [
+    "pytest>=9,<10",
+    "pytest-jubilant>=2,<3",
+]
+```
+And ensure that the `integration` dependency group is installed when running your integration tests, for example with:
+```shell
+uv run --group integration pytest tests/integration
+```
+
 Get started writing your own Jubilant integration tests with [the how-to guide in the Ops docs](https://documentation.ubuntu.com/ops/latest/howto/write-integration-tests-for-a-charm/).
+
 
 Read on for an explanation of the [fixtures](#fixtures), [CLI options](#cli-options), and [markers](#markers) provided by `pytest-jubilant`.
 
 
 ## Fixtures
+
+`pytest-jubilant`'s fixtures are available as long as `pytest-jubilant` is installed. You can [request a fixture](https://docs.pytest.org/en/stable/how-to/fixtures.html) by declaring it as an argument for the test that needs it.
+
 
 ### `juju`
 
@@ -46,7 +67,7 @@ This is a module-scoped fixture that you can use to manage multiple temporary Ju
 > [!TIP]
 > Use `pytest_jubilant.JujuFactory` as the type annotation for the `juju_factory` fixture in your tests for better linting and IDE autocompletions.
 >
-> Note that the exposed `JujuFactory` type is just a protocol, and can't be used to directly create another Juju factory. Request the `juju_factory` fixture instead.
+> Note that the exposed `JujuFactory` type is just a protocol, and can't be used to directly create a Juju factory. Whenever you need one, request the `juju_factory` fixture.
 
 **Usage:**
 
@@ -82,6 +103,8 @@ This test will spin up two temporary models, one called `jubilant-<randomhex>-te
 
 
 ## CLI options
+
+`pytest-jubilant` extends `pytest` with several commandline arguments that you can add directly to your `pytest` invocation.
 
 ### `--no-juju-setup`
 
@@ -209,6 +232,8 @@ pytest integration/test_ingress.py
 
 
 ## Markers
+
+`pytest-jubilant` declares markers that you can apply to your tests with `@pytest.mark.<marker>`.
 
 ### `juju_setup`
 
