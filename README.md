@@ -22,7 +22,7 @@ You can use combinations of the [--juju-model](#--juju-model), [--no-juju-setup]
 > [!TIP]
 > Use `jubilant.Juju` as the type annotation for the `juju` fixture in your tests for better linting and IDE autocompletions.
 
-#### Usage:
+**Usage:**
 
 ```python
 # test_smoke.py
@@ -48,7 +48,7 @@ This is a module-scoped fixture that you can use to manage multiple temporary Ju
 >
 > Note that the exposed `JujuFactory` type is just a protocol, and can't be used to directly create another Juju factory. Request the `juju_factory` fixture instead.
 
-#### Usage:
+**Usage:**
 
 ```python
 # test_cmr.py
@@ -90,7 +90,7 @@ Skip all tests marked with `juju_setup` and don't create any new models. This op
 > [!WARNING]
 > It's an error to pass `--no-juju-setup` without also specifying `--juju-model`.
 
-#### Usage:
+**Usage:**
 
 ```shell
 pytest tests/integration --no-juju-teardown
@@ -108,7 +108,7 @@ Useful to inspect the state of a model after a (failed) test run.
 > The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
 > Be sure to use `--no-juju-teardown` instead.
 
-#### Usage:
+**Usage:**
 
 ```shell
 pytest tests/integration --no-juju-teardown
@@ -125,7 +125,7 @@ By default, created Juju model names are prefixed with `jubilant-<randomhex>`, w
 > [!WARNING]
 > Note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-juju-teardown` flag!
 
-#### Usage:
+**Usage:**
 
 ```shell
 pytest tests/integration/test_foo.py --juju-model my-prefix
@@ -152,7 +152,7 @@ Switch to the model that is currently in scope, so you can keep an eye on the ju
 
 Only switches to models created by the `juju` fixture, not those created by `juju_factory`.
 
-#### Usage:
+**Usage:**
 
 ```shell
 pytest tests/integration -k test_something --juju-switch
@@ -191,7 +191,7 @@ The file naming scheme is:
 >       path: .logs
 > ```
 
-#### Usage:
+**Usage:**
 
 ```shell
 pytest tests/integration/test_ingress.py --juju-dump-logs=debug_logs
@@ -222,7 +222,7 @@ The [--no-juju-setup](#--no-juju-setup) option will skip any tests marked with `
 > pytest tests/integration -m juju_setup --no-juju-teardown
 > ```
 
-#### Usage:
+**Usage:**
 
 ```python
 import jubilant
@@ -247,7 +247,7 @@ Marker for tests that perform destructive actions on a model.
 
 The [--no-juju-teardown](#--no-juju-teardown) option will skip any tests marked with `juju_teardown`, in addition to not destroying the Juju models themselves.
 
-#### Usage:
+**Usage:**
 
 ```python
 import jubilant
