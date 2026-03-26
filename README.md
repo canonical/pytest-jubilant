@@ -168,8 +168,9 @@ The file naming scheme is:
 ```
 
 > [!TIP]
-> Use `--juju-dump-logs` in combination with [actions/upload-artifact](https://github.com/actions/upload-artifact) to make your logs available in CI. For example:
+> Use `--juju-dump-logs` in combination with [actions/upload-artifact](https://github.com/actions/upload-artifact) to make your logs available in CI.
 >
+> For example:
 > ```yaml
 >   # In your integration test job
 >   - run: tox -e integration -- --juju-dump-logs
