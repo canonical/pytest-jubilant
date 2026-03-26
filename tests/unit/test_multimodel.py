@@ -7,13 +7,13 @@ import pytest_jubilant
 
 
 @pytest.fixture(scope="module")
-def istio(temp_model_factory: pytest_jubilant.TempModelFactory):
-    yield temp_model_factory.get_juju(suffix="istio")
+def istio(juju_factory: pytest_jubilant.JujuFactory):
+    yield juju_factory.get_juju(suffix="istio")
 
 
 @pytest.fixture(scope="module")
-def tempo(temp_model_factory: pytest_jubilant.TempModelFactory):
-    yield temp_model_factory.get_juju(suffix="tempo")
+def tempo(juju_factory: pytest_jubilant.JujuFactory):
+    yield juju_factory.get_juju(suffix="tempo")
 
 
 def test_multimodel(

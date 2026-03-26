@@ -23,5 +23,5 @@ def _patch_add_model():
         yield
 
 
-def test_create_model(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("my-fancy-model")
+def test_create_model(juju_factory: pytest_jubilant.JujuFactory):
+    juju_factory.get_juju("my-fancy-model")
