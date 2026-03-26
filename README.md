@@ -136,7 +136,7 @@ pytest tests/integration/test_foo.py --juju-model hello --no-juju-teardown
 
 pytest tests/integration/test_foo.py --juju-model hello --no-juju-setup --no-juju-teardown
 # Runs the test on the existing 'hello-test-foo' model and keeps it.
-# Note that we  dont' want to run the setup tests since they already ran.
+# Note that we don't want to run the setup tests since they already ran.
 ```
 ```shell
 juju add-model hello-test-bar  # A whole new model.
