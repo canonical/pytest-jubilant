@@ -1,8 +1,8 @@
-# The Canonical Pytest plugin for Jubilant
+# The Canonical pytest plugin for Jubilant
 
-`pytest-jubilant` is a [Pytest](https://docs.pytest.org) plugin for [Jubilant](https://documentation.ubuntu.com/jubilant/).
+`pytest-jubilant` is a [pytest](https://docs.pytest.org) plugin for [Jubilant](https://documentation.ubuntu.com/jubilant/).
 
-Jubilant is a Python library that wraps the [Juju](https://canonical.com/juju) CLI, primarily for use in [charm](https://canonical.com/juju/charms-architecture) integration tests. `pytest-jubilant` provides additional Pytest-specific functionality on top of Jubilant.
+Jubilant is a Python library that wraps the [Juju](https://canonical.com/juju) CLI, primarily for use in [charm](https://canonical.com/juju/charms-architecture) integration tests. `pytest-jubilant` provides additional pytest-specific functionality on top of Jubilant.
 
 > Read more: [pytest-jubilant's design goals](./CONTRIBUTING.md#design-goals)
 
