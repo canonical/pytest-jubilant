@@ -167,6 +167,20 @@ The file naming scheme is:
 <module prefix>-<module name>[-<suffix>]-juju-debug.log
 ```
 
+> [!TIP]
+> Use `--juju-dump-logs` in combination with [actions/upload-artifact](https://github.com/actions/upload-artifact) to make your logs available in CI. For example:
+>
+> ```
+>   # In your integration test job
+>   - run: tox -e integration -- --juju-dump-logs
+>   - name: Upload logs
+>     if: ${{ !cancelled() }}
+>     uses: actions/upload-artifact@v4
+>     with:
+>       name: juju-dump-logs
+>       path: .logs
+> ```
+
 #### Usage:
 
     pytest tests/integration/test_ingress.py --juju-dump-logs=debug_logs
