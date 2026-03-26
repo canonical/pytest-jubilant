@@ -40,7 +40,7 @@ def test_no_setup_ok(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-setup", "--model", "model-t")
+    result = pytester.runpytest("--no-juju-setup", "--juju-model", "model-t")
 
     result.assert_outcomes(passed=2, skipped=1)
     assert not (pytester.path / "added.txt").exists()
@@ -56,12 +56,12 @@ def test_no_setup_without_model_is_an_error(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-setup")
+    result = pytester.runpytest("--no-juju-setup")
 
     assert result.ret == 4  # Exit code for a pytest.UsageError
     result.stderr.re_match_lines([
-        ".*--no-setup cannot be specified without --model.*",
-        ".*unless you specify --no-teardown, the model.*",
+        ".*--no-juju-setup cannot be specified without --juju-model.*",
+        ".*unless you specify --no-juju-teardown, the model.*",
     ])
 
 
@@ -70,7 +70,7 @@ def test_no_teardown(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-teardown")
+    result = pytester.runpytest("--no-juju-teardown")
 
     result.assert_outcomes(passed=2, skipped=1)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
@@ -89,7 +89,7 @@ def test_no_setup_and_no_teardown_ok(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-setup", "--no-teardown", "--model", "model-t")
+    result = pytester.runpytest("--no-juju-setup", "--no-juju-teardown", "--juju-model", "model-t")
 
     result.assert_outcomes(passed=1, skipped=2)
     assert not (pytester.path / "added.txt").exists()
@@ -101,10 +101,10 @@ def test_no_setup_and_no_teardown_without_model_is_an_error(pytester: pytest.Pyt
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-setup", "--no-teardown")
+    result = pytester.runpytest("--no-juju-setup", "--no-juju-teardown")
 
     assert result.ret == 4  # Exit code for a pytest.UsageError
-    result.stderr.re_match_lines([".*--no-setup cannot be specified without --model.*"])
+    result.stderr.re_match_lines([".*--no-juju-setup cannot be specified without --juju-model.*"])
 
 
 def test_m_setup(pytester: pytest.Pytester):
@@ -112,7 +112,7 @@ def test_m_setup(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("-m", "setup")
+    result = pytester.runpytest("-m", "juju_setup")
 
     result.assert_outcomes(passed=1, deselected=2)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
@@ -130,7 +130,7 @@ def test_m_setup_with_no_teardown(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("-m", "setup", "--no-teardown")
+    result = pytester.runpytest("-m", "juju_setup", "--no-juju-teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
     assert (pytester.path / "added.txt").read_text().splitlines() == [
@@ -145,7 +145,7 @@ def test_m_teardown(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("-m", "teardown")
+    result = pytester.runpytest("-m", "juju_teardown")
 
     result.assert_outcomes(passed=1, deselected=2)
     assert (pytester.path / "added.txt").read_text().splitlines() == [

@@ -19,7 +19,9 @@ def test_juju_debug_log_on_fail(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     pytester.makepyfile(test_file1=test_file1, test_file2=test_file2)  # type: ignore
     custom_dir = tmp_path / "custom-logs"
 
-    result = pytester.runpytest_subprocess("--model", "model-t", "--dump-logs", str(custom_dir))
+    result = pytester.runpytest_subprocess(
+        "--juju-model", "model-t", "--juju-dump-logs", str(custom_dir)
+    )
 
     # We expect this session to fail.
     outcomes = result.parseoutcomes()
@@ -108,7 +110,9 @@ def test_juju_debug_log_on_pass(pytester: pytest.Pytester, tmp_path: pathlib.Pat
     pytester.makepyfile(test_file1=test_file1, test_file2=test_file2)  # type: ignore
     custom_dir = tmp_path / "custom-logs"
 
-    result = pytester.runpytest_subprocess("--model", "model-t", "--dump-logs", str(custom_dir))
+    result = pytester.runpytest_subprocess(
+        "--juju-model", "model-t", "--juju-dump-logs", str(custom_dir)
+    )
 
     # We expect this session to pass.
     outcomes = result.parseoutcomes()

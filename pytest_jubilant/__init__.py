@@ -4,6 +4,6 @@
 
 """Welcome to pytest-jubilant!"""
 
-from pytest_jubilant._main import TempModelFactory
+from pytest_jubilant._main import JujuFactory
 
-__all__ = ["TempModelFactory"]
+__all__ = ["JujuFactory"]

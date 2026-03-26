@@ -14,9 +14,9 @@ if typing.TYPE_CHECKING:
 
 
 @pytest.fixture(scope="module")
-def models(temp_model_factory: pytest_jubilant.TempModelFactory):
-    foo = temp_model_factory.get_juju("foo1")
-    bar = temp_model_factory.get_juju("bar1")
+def models(juju_factory: pytest_jubilant.JujuFactory):
+    foo = juju_factory.get_juju("foo1")
+    bar = juju_factory.get_juju("bar1")
     yield foo, bar
 
 
@@ -27,7 +27,7 @@ def charm():
     yield charm_path
 
 
-@pytest.mark.setup
+@pytest.mark.juju_setup
 def test_deploy_and_pass(models: tuple[jubilant.Juju, jubilant.Juju], charm: pathlib.Path):
     foo, bar = models
     foo.deploy(charm)

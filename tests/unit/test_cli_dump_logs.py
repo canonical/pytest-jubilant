@@ -4,9 +4,9 @@ pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
 TEST_FILE = """
-def test_use_factory(temp_model_factory):
-    temp_model_factory.get_juju("foo")
-    temp_model_factory.get_juju("bar")
+def test_use_factory(juju_factory):
+    juju_factory.get_juju("foo")
+    juju_factory.get_juju("bar")
 """.strip()
 
 
@@ -24,7 +24,7 @@ def test_dump_logs_empty_path_disables(pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--dump-logs", "")
+    result = pytester.runpytest("--juju-dump-logs", "")
     result.assert_outcomes(passed=1)
 
     assert not (pytester.path / ".logs").exists()
@@ -34,7 +34,7 @@ def test_dump_logs_default_path(pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--dump-logs")
+    result = pytester.runpytest("--juju-dump-logs")
     result.assert_outcomes(passed=1)
 
     foo_log_path = pytester.path / ".logs" / "jubilant-deadbeef-test-file-foo-juju-debug.log"
@@ -50,7 +50,7 @@ def test_dump_logs_custom_path(pytester, tmp_path):
     pytester.makepyfile(test_file=TEST_FILE)
     custom_dir = tmp_path / "custom-logs"
 
-    result = pytester.runpytest("--dump-logs", str(custom_dir))
+    result = pytester.runpytest("--juju-dump-logs", str(custom_dir))
     result.assert_outcomes(passed=1)
 
     foo_log_path = custom_dir / "jubilant-deadbeef-test-file-foo-juju-debug.log"
@@ -65,14 +65,16 @@ def test_juju_debug_log_on_failure(pytester, tmp_path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(
         test_file="""
-def test_fail(temp_model_factory):
-    temp_model_factory.get_juju("foo")
+def test_fail(juju_factory):
+    juju_factory.get_juju("foo")
     assert False
 """
     )
     custom_dir = tmp_path / "custom-logs"
 
-    result = pytester.runpytest_subprocess("--model", "model-t", "--dump-logs", str(custom_dir))
+    result = pytester.runpytest_subprocess(
+        "--juju-model", "model-t", "--juju-dump-logs", str(custom_dir)
+    )
 
     # We expect this session to fail.
     result.assert_outcomes(failed=1)

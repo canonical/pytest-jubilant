@@ -14,7 +14,7 @@ def test_explicit_model_allows_collisions(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_ALREADY_EXISTS)
 
-    result = pytester.runpytest("--model", "my-fancy-model")
+    result = pytester.runpytest("--juju-model", "my-fancy-model")
 
     result.assert_outcomes(passed=1)
 
@@ -43,7 +43,7 @@ def test_explicit_model_doesnt_prevent_other_errors(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_OTHER_CLI_ERROR)
 
-    result = pytester.runpytest("--model", "my-fancy-model")
+    result = pytester.runpytest("--juju-model", "my-fancy-model")
 
     result.assert_outcomes(failed=1)
     assert "ERROR something else" in result.stdout.str()

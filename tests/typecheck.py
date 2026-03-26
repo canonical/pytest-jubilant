@@ -6,8 +6,8 @@ import pytest_jubilant
 import pytest_jubilant._main
 
 
-def needs_temp_model_factory(_: pytest_jubilant.TempModelFactory): ...
+def needs_juju_factory(_: pytest_jubilant.JujuFactory): ...
 
 
-def implements_temp_model_factory(t: pytest_jubilant._main._TempModelFactory):
-    needs_temp_model_factory(t)
+def implements_juju_factory(t: pytest_jubilant._main._JujuFactory):
+    needs_juju_factory(t)

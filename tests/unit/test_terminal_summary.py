@@ -21,7 +21,7 @@ def test_default_shows_teardown_hint(pytester: pytest.Pytester):
     result.assert_outcomes(passed=1)
     result.stdout.fnmatch_lines([
         "*Models were torn down*",
-        "*--no-teardown*",
+        "*--no-juju-teardown*",
     ])
 
 
@@ -30,12 +30,12 @@ def test_default_no_teardown_shows_rerun_hint(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--no-teardown")
+    result = pytester.runpytest("--no-juju-teardown")
 
     result.assert_outcomes(passed=1)
     result.stdout.fnmatch_lines([
         "*Models were not torn down*",
-        "--no-setup --no-teardown --model jubilant-deadbeef",
+        "--no-juju-setup --no-juju-teardown --juju-model jubilant-deadbeef",
     ])
 
 
@@ -44,12 +44,12 @@ def test_explicit_model_shows_teardown_hint(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--model", "my-model")
+    result = pytester.runpytest("--juju-model", "my-model")
 
     result.assert_outcomes(passed=1)
     result.stdout.fnmatch_lines([
         "*Models were torn down*",
-        "*--no-teardown*",
+        "*--no-juju-teardown*",
     ])
 
 
@@ -58,10 +58,10 @@ def test_explicit_model_with_no_teardown_shows_rerun_hint(pytester: pytest.Pytes
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
-    result = pytester.runpytest("--model", "my-model", "--no-teardown")
+    result = pytester.runpytest("--juju-model", "my-model", "--no-juju-teardown")
 
     result.assert_outcomes(passed=1)
     result.stdout.fnmatch_lines([
         "*Models were not torn down*",
-        "--no-setup --no-teardown --model my-model",
+        "--no-juju-setup --no-juju-teardown --juju-model my-model",
     ])
