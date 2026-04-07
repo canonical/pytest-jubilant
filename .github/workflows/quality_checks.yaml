@@ -10,45 +10,37 @@ on:
 
 jobs:
   lint:
-    name: Linting
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
           persist-credentials: false
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - run: uv tool install tox --with tox-uv
       - run: tox -e lint
 
   unit:
-    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
           persist-credentials: false
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
       - run: uv tool install tox --with tox-uv
       - run: tox -e unit
 
+  run-integration:
+    needs: [lint, unit]
+    uses: ./.github/workflows/integration.yaml
+    permissions:
+      actions: write
+      contents: read
+
   integration:
-    name: Integration Tests
+    needs: [run-integration]
+    if: ${{ !cancelled() }}  # run even if tests are skipped or failed
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - run: sudo snap install --classic concierge
-      - run: sudo concierge prepare -p machine
-      - run: charmcraft pack
-        working-directory: ./tests/integration/charms/simple
-      - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
-      - run: uv tool install tox --with tox-uv
-      - run: tox -e integration
-        env:
-          SIMPLE_CHARM_PATH: ./tests/integration/charms/simple/simple_amd64.charm
+      - name: Fail if any tests failed
+        if: ${{ needs.run-integration.result != 'success' }}
+        run: exit 1

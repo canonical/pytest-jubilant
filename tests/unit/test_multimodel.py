@@ -1,19 +1,25 @@
-from unittest.mock import call
+from unittest.mock import MagicMock, call
 
+import jubilant
 import pytest
 
-
-@pytest.fixture(scope="module")
-def istio(temp_model_factory):
-    yield temp_model_factory.get_juju(suffix="istio")
+import pytest_jubilant
 
 
 @pytest.fixture(scope="module")
-def tempo(temp_model_factory):
-    yield temp_model_factory.get_juju(suffix="tempo")
+def istio(juju_factory: pytest_jubilant.JujuFactory):
+    yield juju_factory.get_juju(suffix="istio")
 
 
-def test_multimodel(cli_mock, juju, istio, tempo):
+@pytest.fixture(scope="module")
+def tempo(juju_factory: pytest_jubilant.JujuFactory):
+    yield juju_factory.get_juju(suffix="tempo")
+
+
+def test_multimodel(
+    cli_mock: MagicMock, juju: jubilant.Juju, istio: jubilant.Juju, tempo: jubilant.Juju
+):
+    assert juju.model is not None
     assert istio.model == juju.model + "-istio"
     assert tempo.model == juju.model + "-tempo"
 
@@ -23,28 +29,28 @@ def test_multimodel(cli_mock, juju, istio, tempo):
     assert cli_mock.called
     assert cli_mock.call_args_list == [
         call(
-            ["juju", "add-model", "--no-switch", "test-multimodel-testing"],
+            ["juju", "add-model", "--no-switch", "jubilant-deadbeef-test-multimodel"],
             check=True,
             capture_output=True,
             encoding="utf-8",
             input=None,
         ),
         call(
-            ["juju", "add-model", "--no-switch", "test-multimodel-testing-istio"],
+            ["juju", "add-model", "--no-switch", "jubilant-deadbeef-test-multimodel-istio"],
             check=True,
             capture_output=True,
             encoding="utf-8",
             input=None,
         ),
         call(
-            ["juju", "add-model", "--no-switch", "test-multimodel-testing-tempo"],
+            ["juju", "add-model", "--no-switch", "jubilant-deadbeef-test-multimodel-tempo"],
             check=True,
             capture_output=True,
             encoding="utf-8",
             input=None,
         ),
         call(
-            ["juju", "deploy", "--model", "test-multimodel-testing", "something"],
+            ["juju", "deploy", "--model", "jubilant-deadbeef-test-multimodel", "something"],
             check=True,
             capture_output=True,
             encoding="utf-8",
@@ -55,7 +61,7 @@ def test_multimodel(cli_mock, juju, istio, tempo):
                 "juju",
                 "deploy",
                 "--model",
-                "test-multimodel-testing-istio",
+                "jubilant-deadbeef-test-multimodel-istio",
                 "somethingelse",
             ],
             check=True,

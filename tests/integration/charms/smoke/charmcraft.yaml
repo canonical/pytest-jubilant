@@ -1,14 +1,13 @@
 type: charm
-name: simple
-title: Simple Test Charm
-summary: A simple test charm for use in integration tests.
+name: smoke
+title: Smoke Test Charm
+summary: A minimal test charm for smoke testing deploy and wait.
 description: What it says on the tin.
 
 # https://documentation.ubuntu.com/charmcraft/stable/howto/build-guides/select-platforms/
-base: ubuntu@22.04
+base: ubuntu@24.04
 platforms:
   amd64:
-  arm64:
 
 parts:
   charm:

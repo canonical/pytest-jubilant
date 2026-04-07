@@ -1,219 +1,304 @@
-# Pytest plugin for jubilant.
+# The Canonical pytest plugin for Jubilant
 
-Eases the transition from pytest-operator to jubilant.
-And some cool stuff on top.
+`pytest-jubilant` is a [pytest](https://docs.pytest.org) plugin for [Jubilant](https://documentation.ubuntu.com/jubilant/).
 
-# Fixtures
+Jubilant is a Python library that wraps the [Juju](https://canonical.com/juju) CLI, primarily for use in [charm](https://canonical.com/juju/charms-architecture) integration tests. `pytest-jubilant` provides additional pytest-specific functionality on top of Jubilant.
 
-## `juju`
-This is a module(and model!)-scoped fixture that, by default, uses a temporary model and tears it down on context exit.
-See also the `--model` and `--no-teardown` options below, which modify its behavior.
-Usage:
-
-```python
-from jubilant import Juju, all_active
+> Read more: [pytest-jubilant's design goals](./CONTRIBUTING.md#design-goals)
 
 
-def test_deploy(juju: Juju):
-    juju.deploy("./foo.charm", "foo")
-    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
+## Getting started
+
+`pytest-jubilant`'s features are available to use as long as it's installed in the Python environment where you're invoking `pytest`. The best way to ensure this is to add both `pytest` and `pytest-jubilant` to your dependencies like this.
+```toml
+# pyproject.toml
+[dependency-groups]
+integration = [
+    "pytest>=9,<10",
+    "pytest-jubilant>=2,<3",
+]
+```
+And ensure that the `integration` dependency group is installed when running your integration tests, for example with:
+```shell
+uv run --group integration pytest tests/integration
 ```
 
-## `temp_model_factory`
-This is a module-scoped fixture that manages temporary models for your test runs.
-It is what the `juju` fixture is using behind the scenes.
+Get started writing your own Jubilant integration tests with [the how-to guide in the Ops docs](https://documentation.ubuntu.com/ops/latest/howto/write-integration-tests-for-a-charm/).
 
-Especially useful if you have test cases that require multiple models.
+
+Read on for an explanation of the [fixtures](#fixtures), [CLI options](#cli-options), and [markers](#markers) provided by `pytest-jubilant`.
+
+
+## Fixtures
+
+`pytest-jubilant`'s fixtures are available as long as `pytest-jubilant` is installed. You can [request a fixture](https://docs.pytest.org/en/stable/how-to/fixtures.html) by declaring it as an argument for the test that needs it.
+
+
+### `juju`
+
+This is a module-scoped fixture that creates a temporary Juju model and tears it down when the tests in the module have finished.
+
+You can use combinations of the [--juju-model](#--juju-model), [--no-juju-setup](#--no-juju-setup), and [--no-juju-teardown](#--no-juju-teardown) options to reuse models across multiple integration test runs.
+
+> [!TIP]
+> Use `jubilant.Juju` as the type annotation for the `juju` fixture in your tests for better linting and IDE autocompletions.
+
+**Usage:**
+
 ```python
+# test_smoke.py
+"""Test that the charm can be deployed and go to active status."""
+
+import jubilant
+
+
+def test_deploy(juju: jubilant.Juju):
+    juju.deploy("./foo.charm", "foo")
+    juju.wait(lambda status: jubilant.all_active(status, "foo"), timeout=1000)
+```
+
+This test will spin up a temporary model named `jubilant-<randomhex>-test-smoke`. It will be torn down when the module-scoped `juju` fixture context exits.
+
+
+### `juju_factory`
+
+This is a module-scoped fixture that you can use to manage multiple temporary Juju models. It's what the `juju` fixture is using behind the scenes. It's useful if you have test cases that require multiple models, for example testing cross-model relations.
+
+> [!TIP]
+> Use `pytest_jubilant.JujuFactory` as the type annotation for the `juju_factory` fixture in your tests for better linting and IDE autocompletions.
+>
+> Note that the exposed `JujuFactory` type is just a protocol, and can't be used to directly create a Juju factory. Whenever you need one, request the `juju_factory` fixture.
+
+**Usage:**
+
+```python
+# test_cmr.py
+"""Test cross model relations."""
+
+import jubilant
 import pytest
-from jubilant import Juju, all_active
+import pytest_jubilant
 
 
-@pytest.fixture
-def istio(temp_model_factory):
-    yield temp_model_factory.get_juju(suffix="istio")
+@pytest.fixture(scope="module")
+def istio(juju_factory: pytest_jubilant.JujuFactory):
+    yield juju_factory.get_juju(suffix="istio")
 
 
-def test_cmr(juju: Juju, istio: Juju):
+def test_offer_consume_relate(juju: jubilant.Juju, istio: jubilant.Juju):
     istio.deploy("istio-k8s", "istio")
     istio.wait(lambda status: all_active(status, "istio"), timeout=1000)
 
     juju.deploy("./foo.charm", "foo")
-    juju.wait(lambda status: all_active(status, "foo"), timeout=1000)
+    juju.wait(lambda status: jubilant.all_active(status, "foo"), timeout=1000)
 
     juju.cli("offer", "foo:bar")
     istio.cli("consume", f"{juju.model}:foo")
     istio.cli("relate", "istio", "foo:bar")
 ```
 
-This test will spin up two temporary models, one called `test-cmr-<randomhex>`, and one called `test-cmr-<randomhex>istio`,
-and tear them down on context exit.
+This test will spin up two temporary models, one called `jubilant-<randomhex>-test-cmr`, and one called `jubilant-<randomhex>-test-cmr-istio`. They'll be torn down when the module context exits.
 
-This fixture can be used with the options described below:
-- `pytest tests/test_cmr.py --model test-cmr-<randomhex>` will use `test-cmr-<randomhex>` as base name, and the suffixes you defined in the fixtures will give all generated models predictable names, which means that the tests will reuse the existing models (if found) or create new ones with those names.
-- `pytest tests/test_cmr.py --switch` will switch you to the 'base' model `test-cmr-<randomhex>` (not to one of the suffixed ones!).
+`pytest tests/integration --juju-model hello` will use `hello` instead of `jubilant-<randomhex>`. The module names combined with the suffixes you defined in the fixtures will give all generated models predictable names. The tests will reuse the existing models (if found) or create new ones with those names.
 
 
-# Pytest CLI options
+## CLI options
 
-## `--model`
-Override the default model name generation (test module + random bits) and use a fixed model name instead.
-Do note that this model **will** be torn down at the end of the test run just like any other, so if you're targeting an existing model you care about, don't forget the `--no-teardown` flag!.
+`pytest-jubilant` extends `pytest` with several commandline arguments that you can add directly to your `pytest` invocation.
 
-Usage:
+### `--no-juju-setup`
 
-    pytest ./tests/integration -k test_foo --model "model2"
-    # runs the tests on a new 'model2' model and tears it down afterwards
+Skip all tests marked with `juju_setup` and don't create any new models. This option is for re-running a test on an existing model which is already set up. Since setup can be very lengthy, it's often helpful to avoid re-running it when iterating on tests that assume the charm is up and running, for example when testing actions.
 
-    juju add-model model1
-    pytest ./tests/integration -k test_foo --model "model1" --no-teardown
-    # runs the tests on the existing 'model1' model, and keeps it
+> [!WARNING]
+> It's an error to pass `--no-juju-setup` without also specifying `--juju-model`.
+
+**Usage:**
+
+```shell
+pytest tests/integration --no-juju-teardown
+# Check the last line of output for the <model prefix>!
+pytest tests/integration --no-juju-setup --juju-model <model prefix>
+```
 
 
-## `--switch`
-Switch to the (randomly-named?) model that is currently in scope, so you can keep an
-eye on the juju status as the tests progress.
-(Won't work well if you're running multiple test modules in parallel.)
+### `--no-juju-teardown`
 
-Usage:
-
-    pytest ./tests/integration -k test-something --switch
-    # will switch you to the test-something-09i123451 (random bits may differ) model as soon as it's created
-
-    pytest ./tests/integration -k test-something --model mymodel --switch
-    # will switch you to the `mymodel` model as soon as it's created
-
-## `--no-teardown`
-Skip all tests marked with `teardown` and skip destroying the models.
+Skip all tests marked with `juju_teardown` and skip destroying the models.
 Useful to inspect the state of a model after a (failed) test run.
-Warning: The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
-Be sure to use `--no-teardown` instead.
 
-Usage:
-    pytest ./tests/integration --no-teardown
+> [!WARNING]
+> The `--keep-models` flag used by `pytest-operator` is unsupported as of `pytest-jubilant` 2.0!
+> Be sure to use `--no-juju-teardown` instead.
 
+**Usage:**
 
-## `--no-setup`
-Skip all tests marked with `setup`. Especially useful when re-running a test on an existing model which is already set-up, but not torn down.
-See [this article](https://discourse.charmhub.io/t/14006) for the idea behind this workflow.
-Usage:
+```shell
+pytest tests/integration --no-juju-teardown
+```
 
-    pytest ./tests/integration --no-teardown # make a note of the temporary model name
-    pytest ./tests/integration --model <temporary model name> --no-setup
-
-
-## `--dump-logs`
-Prior to tearing down all models owned by a temp_model_factory (i.e. prior to cleaning up a test module execution), dump the `juju debug-log --replay` for each model into a directory (default `"<CWD>/.logs"`). File naming scheme is:
-
-`<module name>-<random bits>[-<suffix>]-jdl.txt`
-
-Usage:
-
-    pytest ./tests/integration ./integration/test_ingress.py --dump-logs=./debug_logs
-    # once the tests are done, you'll find the logs in
-    # ./debug_logs/test-ingress-c372ef49-jdl.txt (random bits may vary).
-
-    pytest ./tests/integration ./integration/test_ingress.py --model foo --dump-logs=./debug_logs
-    # once the tests are done, you'll find the logs in
-    # ./debug_logs/foo-jdl.txt
-
-    pytest ./tests/integration ./integration/test_ingress.py --dump-logs=""
-    # no logs will be saved
+> [!TIP]
+> The last line of output will tell you the `--juju-model` value to use if you want to rerun your tests using the same models. Be sure to pass `--no-juju-setup` as well to avoid failures when trying to perform setup steps that are already done.
 
 
-# Markers
+### `--juju-model`
 
-## `setup`
+By default, created Juju model names are prefixed with `jubilant-<randomhex>`, where `<randomhex>` is randomly generated each `pytest` run. Set `--juju-model` on the commandline to use a fixed prefix instead.
 
-Marker for tests that prepare (parts of) a model.
+> [!WARNING]
+> Note that models created with this prefix **will** be torn down at the end of the test run just like any other, so if you're targeting existing models you care about, don't forget the `--no-juju-teardown` flag!
 
-Usage:
+**Usage:**
+
+```shell
+pytest tests/integration/test_foo.py --juju-model hello
+# Runs the test on new 'hello-test-foo' model and tears it down afterwards.
+
+pytest tests/integration/test_foo.py --juju-model hello --no-juju-teardown
+# Runs the test on new 'hello-test-foo' model and keeps it.
+
+pytest tests/integration/test_foo.py --juju-model hello --no-juju-setup --no-juju-teardown
+# Runs the test on the existing 'hello-test-foo' model and keeps it.
+# Note that we don't want to run the setup tests since they already ran.
+```
+```shell
+juju add-model hello-test-bar  # A whole new model.
+pytest tests/integration/test_bar.py --juju-model hello --no-juju-teardown
+# Runs the test on the existing 'hello-test-bar' model and keeps it.
+# Note that we want to run the setup tests to deploy the charm(s) etc.
+# since this is a new model.
+```
+
+
+### `--juju-switch`
+
+Switch to the model that is currently in scope, so you can keep an eye on the juju status as the tests progress. This won't be very helpful if you're running multiple test modules in parallel!
+
+Only switches to models created by the `juju` fixture, not those created by `juju_factory`.
+
+**Usage:**
+
+```shell
+pytest tests/integration -k test_something --juju-switch
+# will switch you to the 'jubilant-<randomhex>-<module>' model as soon as it's created
+
+pytest tests/integration -k test_something --juju-model hello --juju-switch
+# will switch you to the 'hello-<module>' model as soon as it's created
+```
+
+
+### `--juju-dump-logs`
+
+When all the tests in a module have completed, but prior to tearing down the models owned by a [juju_factory](#juju_factory), dump the `juju debug-log` for each managed model into the specified directory.
+
+- By default, logs aren't dumped, and `juju debug-log` is only executed if tests failed, so that the last log lines can be sent to stderr.
+- If `--juju-dump-logs` is passed, logs are dumped to `<CWD>/.logs/`.
+- If `--juju-dump-logs <target dir>` is passed, logs are dumped to `<target dir>/`.
+
+The file naming scheme is:
+```
+<module prefix>-<module name>[-<suffix>]-juju-debug.log
+```
+
+**Usage:**
+
+```shell
+pytest tests/integration/test_ingress.py --juju-dump-logs=debug_logs
+# Once the tests are done, you'll find the logs in:
+# ./debug_logs/jubilant-abcd1234-test-ingress-juju-debug.log
+
+pytest tests/integration/test_ingress.py --juju-model foo --juju-dump-logs
+# Once the tests are done, you'll find the logs in the default directory:
+# ./.logs/foo-test-ingress-juju-debug.log
+
+pytest integration/test_ingress.py
+# No logs will be saved.
+```
+
+> [!TIP]
+> Use `--juju-dump-logs` in combination with [actions/upload-artifact](https://github.com/actions/upload-artifact) to make your logs available in CI.
+>
+> For example:
+> ```yaml
+>   # In your integration test job
+>   - run: tox -e integration -- --juju-dump-logs
+>   - name: Upload logs
+>     if: ${{ !cancelled() }}
+>     uses: actions/upload-artifact@v4
+>     with:
+>       name: juju-dump-logs
+>       path: .logs
+> ```
+
+
+## Markers
+
+`pytest-jubilant` declares markers that you can apply to your tests with `@pytest.mark.<marker>`.
+
+### `juju_setup`
+
+Marker for tests that prepare a model for use in later tests.
+
+The [--no-juju-setup](#--no-juju-setup) option will skip any tests marked with `juju_setup`, in addition to not destroying the Juju models themselves.
+
+> [!TIP]
+> To run only your `juju_setup` tests and leave the models set up for manual interaction, try:
+>
+> ```
+> pytest tests/integration -m juju_setup --no-juju-teardown
+> ```
+
+**Usage:**
 
 ```python
+import jubilant
 import pytest
 
 
-@pytest.mark.setup
-def test_deploy(juju):
+@pytest.mark.juju_setup
+def test_deploy(juju: jubilant.Juju):
     juju.deploy("A")
     juju.deploy("B")
 
 
-@pytest.mark.setup
-def test_relate(juju):
+@pytest.mark.juju_setup
+def test_relate(juju: jubilant.Juju):
     juju.integrate("A", "B")
 ```
 
-## `teardown`
-Marker for tests that destroy (parts of) a model.
 
-Usage:
+### `juju_teardown`
+
+Marker for tests that perform destructive actions on a model.
+
+The [--no-juju-teardown](#--no-juju-teardown) option will skip any tests marked with `juju_teardown`, in addition to not destroying the Juju models themselves.
+
+**Usage:**
 
 ```python
+import jubilant
 import pytest
 
 
-@pytest.mark.teardown
-def test_disintegrate(juju):
+@pytest.mark.juju_teardown
+def test_disintegrate(juju: jubilant.Juju):
     juju.remove_relation("A", "B")
 
 
-@pytest.mark.teardown
-def test_destroy(juju):
+@pytest.mark.juju_teardown
+def test_destroy(juju: jubilant.Juju):
     juju.remove_application("A")
     juju.remove_application("B")
 ```
 
-# Utilities
+## Project and community
 
-## `get_resources`
+`pytest-jubilant` is an open source project that warmly welcomes community contributions, suggestions, fixes and constructive feedback.
 
-`get_resources` will parse a `charmcraft.yaml` file and return a mapping from resources to their `upstream-source`
-field as is standard convention.
+- [Report a bug](https://github.com/canonical/pytest-jubilant/issues)
+- [Contribute](./CONTRIBUTING.md)
+- [Code of conduct](./CODE_OF_CONDUCT.md)
 
-```yaml
-# example /path/to/foo-charm-repo-root-dir/charmcraft.yaml
+For support, join [Charm Development](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) on Matrix.
 
-# [snip]
-resources:
-  nginx-image:
-    type: oci-image
-    description: OCI image for nginx
-    upstream-source: ubuntu/nginx:1.24-24.04_beta
-  nginx-prometheus-exporter-image:
-    type: oci-image
-    description: OCI image for nginx-prometheus-exporter
-    upstream-source: nginx/nginx-prometheus-exporter:1.1.0
-```
-
-Usage:
-
-```python
-from pytest_jubilant import get_resources
-import pytest
-
-
-@pytest.mark.setup
-def test_deploy_charm(juju):
-    juju.deploy(
-        os.environ["CHARM_PATH"],
-        # the resources can only be inferred from the charm's metadata/charmcraft yaml
-        # if you use the `upstream-source` convention
-        resources=get_resources(charm_root),
-        num_units=3,
-    )
-```
-
-# DEVELOPERS
-
-To release:
-```bash
-# obtain the current latest version out there
-git tag | tail -n 1
-
-new_tag="v0.5"  # for example!
-git tag $new_tag -m "new fancy feature"
-git push origin head --tag
-```
-
-Once the PR is merged, the release CI will kick in and put the tag in `pytest_jubilant/_version.py`
+To follow along with updates and tips about charm development, join our [Discourse forum](https://discourse.charmhub.io/).

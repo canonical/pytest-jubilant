@@ -4,9 +4,20 @@ import pytest
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _patch_log_wait():
+    """Set the log wait time to 0 for unit tests since we're not waiting on real Juju logs."""
+    mp = pytest.MonkeyPatch()  # The monkeypatch fixture is function scoped, so make our own.
+    mp.setattr("pytest_jubilant._main._LOG_WAIT", 0)
+    try:
+        yield
+    finally:
+        mp.undo()
+
+
+@pytest.fixture(scope="session", autouse=True)
 def _global_random_bits_mock():
     """Mock out secrets.token_hex so we can have predictable model names."""
-    with unittest.mock.patch("secrets.token_hex", new=lambda _: "testing"):
+    with unittest.mock.patch("secrets.token_hex", new=lambda _: "deadbeef"):
         yield
 
 

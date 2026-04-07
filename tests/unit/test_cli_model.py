@@ -14,7 +14,7 @@ def test_explicit_model_allows_collisions(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_ALREADY_EXISTS)
 
-    result = pytester.runpytest("--model", "my-fancy-model")
+    result = pytester.runpytest("--juju-model", "my-fancy-model")
 
     result.assert_outcomes(passed=1)
 
@@ -28,11 +28,12 @@ def test_collision_without_explicit_model_raises(pytester: pytest.Pytester):
 
     result.assert_outcomes(failed=1)
     module_name = "test-file"
-    randbits = "testing"
-    model_name = "my-fancy-model"
+    session_id = "deadbeef"
+    suffix = "my-fancy-model"
+    model_name = f"jubilant-{session_id}-{module_name}-{suffix}"
     msg = (
         "ERROR failed to create new model: "
-        f'model "{module_name}-{randbits}-{model_name}" for admin already exists (already exists)'
+        f'model "{model_name}" for admin already exists (already exists)'
     )
     assert msg in result.stdout.str()
 
@@ -42,7 +43,7 @@ def test_explicit_model_doesnt_prevent_other_errors(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_OTHER_CLI_ERROR)
 
-    result = pytester.runpytest("--model", "my-fancy-model")
+    result = pytester.runpytest("--juju-model", "my-fancy-model")
 
     result.assert_outcomes(failed=1)
     assert "ERROR something else" in result.stdout.str()

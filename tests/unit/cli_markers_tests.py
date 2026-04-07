@@ -35,19 +35,19 @@ def _patch_model_operations():
 
 
 @pytest.fixture(scope="module", autouse=True)
-def _fixture(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("autouse-module-scoped-fixture")
+def _fixture(juju_factory: pytest_jubilant.JujuFactory):
+    juju_factory.get_juju("autouse-module-scoped-fixture")
 
 
-@pytest.mark.setup
-def test_setup(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("setup")
+@pytest.mark.juju_setup
+def test_setup(juju_factory: pytest_jubilant.JujuFactory):
+    juju_factory.get_juju("setup")
 
 
-def test_regular(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("regular")
+def test_regular(juju_factory: pytest_jubilant.JujuFactory):
+    juju_factory.get_juju("regular")
 
 
-@pytest.mark.teardown
-def test_teardown(temp_model_factory: pytest_jubilant.TempModelFactory):
-    temp_model_factory.get_juju("teardown")
+@pytest.mark.juju_teardown
+def test_teardown(juju_factory: pytest_jubilant.JujuFactory):
+    juju_factory.get_juju("teardown")

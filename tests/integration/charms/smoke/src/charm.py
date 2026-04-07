@@ -2,12 +2,12 @@
 # Copyright 2026 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Minimal test charm for pack and deploy."""
+"""Minimal test charm for smoke testing deploy and wait."""
 
 import ops
 
 
-class SimpleCharm(ops.CharmBase):
+class SmokeCharm(ops.CharmBase):
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
         framework.observe(self.on.collect_unit_status, self._on_collect_unit_status)
@@ -17,4 +17,4 @@ class SimpleCharm(ops.CharmBase):
 
 
 if __name__ == "__main__":  # pragma: nocover
-    ops.main(SimpleCharm)
+    ops.main(SmokeCharm)
