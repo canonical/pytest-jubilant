@@ -44,7 +44,7 @@ jobs:
       - run: sudo snap install --classic charmcraft
       - run: sudo charmcraft pack --destructive-mode
         working-directory: tests/integration/charms/${{ matrix.charm }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.charm }}-charm
           path: "tests/integration/charms/${{ matrix.charm }}/*.charm"
