@@ -221,14 +221,15 @@ pytest integration/test_ingress.py
 > For example:
 > ```yaml
 >   # In your integration test job
->   - run: tox -e integration -- --juju-dump-logs
+>   - run: tox -e integration -- --juju-dump-logs logs
 >   - name: Upload logs
 >     if: ${{ !cancelled() }}
 >     uses: actions/upload-artifact@v4
 >     with:
 >       name: juju-dump-logs
->       path: .logs
+>       path: logs
 > ```
+> Note that dumping to the default location `.logs/` will require you to set `include-hidden-files: true`.
 
 
 ## Markers
