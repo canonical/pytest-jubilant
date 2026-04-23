@@ -34,6 +34,7 @@ def test_multimodel(
             capture_output=True,
             encoding="utf-8",
             input=None,
+            timeout=None,
         ),
         call(
             ["juju", "add-model", "--no-switch", "jubilant-deadbeef-test-multimodel-istio"],
@@ -41,6 +42,7 @@ def test_multimodel(
             capture_output=True,
             encoding="utf-8",
             input=None,
+            timeout=None,
         ),
         call(
             ["juju", "add-model", "--no-switch", "jubilant-deadbeef-test-multimodel-tempo"],
@@ -48,6 +50,7 @@ def test_multimodel(
             capture_output=True,
             encoding="utf-8",
             input=None,
+            timeout=None,
         ),
         call(
             ["juju", "deploy", "--model", "jubilant-deadbeef-test-multimodel", "something"],
@@ -55,6 +58,7 @@ def test_multimodel(
             capture_output=True,
             encoding="utf-8",
             input=None,
+            timeout=None,
         ),
         call(
             [
@@ -68,5 +72,6 @@ def test_multimodel(
             capture_output=True,
             encoding="utf-8",
             input=None,
+            timeout=None,
         ),
     ]

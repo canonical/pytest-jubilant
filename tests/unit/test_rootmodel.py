@@ -12,6 +12,7 @@ def test_rootmodel(cli_mock, juju):
             capture_output=True,
             encoding="utf-8",
             input=None,
+            timeout=None,
         ),
         call(
             ["juju", "deploy", "--model", "jubilant-deadbeef-test-rootmodel", "something"],
@@ -19,5 +20,6 @@ def test_rootmodel(cli_mock, juju):
             capture_output=True,
             encoding="utf-8",
             input=None,
+            timeout=None,
         ),
     ]
