@@ -20,6 +20,8 @@ actions:
   log:
     description: Make a lot of logging calls.
     additionalProperties: false
-  log-fail:
-    description: Make a lot of logging calls, then fail.
-    additionalProperties: false
+    params:
+      fail:
+        description: "Whether to fail the action after making the logging calls."
+        type: boolean
+        default: false

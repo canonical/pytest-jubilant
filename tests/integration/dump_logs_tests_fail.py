@@ -29,4 +29,4 @@ def test_deploy_and_then_fail(
     bar.deploy(log_actions_charm, app="log")
     foo.wait(jubilant.all_active, timeout=900)
     bar.wait(jubilant.all_active)
-    foo.run("log/0", "log-fail")
+    foo.run("log/0", "log", {"fail": True})
