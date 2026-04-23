@@ -78,3 +78,5 @@ jobs:
             echo "${name^^}_CHARM_PATH=${{ github.workspace }}/${charm}" >> "$GITHUB_ENV"
           done
       - run: tox -e integration -- ${{ matrix.test }}
+        env:
+          TMPDIR: ${{ github.workspace }}
