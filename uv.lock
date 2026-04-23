@@ -576,7 +576,7 @@ unit = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jubilant", specifier = ">=0.5.0" },
+    { name = "jubilant", specifier = ">=1,<2" },
     { name = "pytest", specifier = ">=8.3.5" },
 ]
 
