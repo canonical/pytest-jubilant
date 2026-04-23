@@ -13,10 +13,10 @@ jobs:
       tests: ${{ steps.tests.outputs.result }}
       charms: ${{ steps.charms.outputs.result }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
       - name: Collect integration tests
         id: tests
         run: |
@@ -38,7 +38,7 @@ jobs:
         charm: ${{ fromJson(needs.init.outputs.charms) }}
     runs-on: ubuntu-24.04  # matching the charms' base for destructive mode packing
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - run: sudo snap install --classic charmcraft
@@ -58,14 +58,14 @@ jobs:
       matrix:
         test: ${{ fromJson(needs.init.outputs.tests) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - run: sudo snap install --classic concierge
       - run: sudo concierge prepare -c .github/concierge/test.yaml
-      - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098  # v7.3.1
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
       - run: uv tool install tox --with tox-uv
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: "*-charm"
           merge-multiple: true
