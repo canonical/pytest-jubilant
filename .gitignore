@@ -3,6 +3,7 @@ __pycache__
 build
 dist
 .coverage
+.report
 .logs/
 /tests/.logs/
 .tmp/
