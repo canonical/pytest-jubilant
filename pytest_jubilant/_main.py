@@ -131,7 +131,16 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 
 class JujuFactory(typing.Protocol):
-    def get_juju(self, suffix: str) -> jubilant.Juju: ...
+    """Factory for per-test temporary Juju models."""
+
+    def get_juju(self, suffix: str) -> jubilant.Juju:
+        """Return a `jubilant.Juju` for a model named `<prefix>-<suffix>`.
+
+        If `suffix` is empty, the model is named `<prefix>`. The same factory
+        cannot return two `Juju` instances for the same model name; raises
+        `ValueError` if called twice with the same `suffix`.
+        """
+        ...
 
 
 class _JujuFactory:
@@ -193,7 +202,7 @@ class _JujuFactory:
             if self._log_path:
                 jdl_path = self._log_path / (model + "-juju-debug.log")
                 jdl_path.write_text(jdl)
-                logging.info(f"Wrote full `juju debug-log` for model {model} to {jdl_path}")
+                logging.info("Wrote full `juju debug-log` for model %s to %s", model, jdl_path)
 
     def _teardown(self, force: bool = False):
         for model, juju in self._models.items():
@@ -233,6 +242,12 @@ def juju_factory(
     _sleep_once: Callable[[], None],
     _model_prefix: str,
 ):
+    """Module-scoped factory for creating one or more temporary Juju models.
+
+    Use this when a test module needs more than one model. For the common
+    single-model case, use the `juju` fixture instead. Models created via this
+    factory are torn down at module teardown unless `--no-juju-teardown` is set.
+    """
     module_name = typing.cast("str", request.module.__name__)  # type: ignore
     module_part = module_name.rpartition(".")[-1].replace("_", "-")
     dump_logs = typing.cast("pathlib.Path | None", request.config.getoption("--juju-dump-logs"))
@@ -252,12 +267,19 @@ def juju_factory(
     factory._dump_all_logs(also_log_lines=also_log_lines)  # pyright: ignore[reportPrivateUsage]
 
     if not request.config.getoption("--no-juju-teardown"):
-        # TODO: jubilant defaults to --force, but is that a good idea?
+        # Match jubilant's temp_model fixture: --force so failed tests with apps
+        # in error states don't hang teardown.
         factory._teardown(force=True)  # pyright: ignore[reportPrivateUsage]
 
 
 @pytest.fixture(scope="module")
 def juju(request: pytest.FixtureRequest, juju_factory: JujuFactory):
+    """Module-scoped temporary Juju model.
+
+    Returns a `jubilant.Juju` bound to a freshly created model that lives for
+    the duration of the test module. Pass `--juju-switch` to make this the
+    active model in your local `juju` CLI while the tests run.
+    """
     juju = juju_factory.get_juju("")
     if request.config.getoption("--juju-switch"):
         assert juju.model  # noqa: S101
