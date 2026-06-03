@@ -34,6 +34,10 @@ _MODEL_PREFIX_KEY = pytest.StashKey[str]()
 
 
 def pytest_addoption(parser: pytest.Parser):
+    """Register the ``--juju-*`` command-line options under the "jubilant" group.
+
+    Pytest hook: https://docs.pytest.org/en/stable/reference/reference.html#pytest.hookspec.pytest_addoption
+    """
     group = parser.getgroup("jubilant")
     group.addoption(
         "--juju-model",
@@ -72,6 +76,10 @@ def pytest_addoption(parser: pytest.Parser):
 
 
 def pytest_configure(config: pytest.Config):
+    """Register the ``juju_setup`` and ``juju_teardown`` markers, and validate option combinations.
+
+    Pytest hook: https://docs.pytest.org/en/stable/reference/reference.html#pytest.hookspec.pytest_configure
+    """
     config.addinivalue_line(
         "markers", "juju_setup: tests that setup some parts of the environment."
     )
@@ -117,6 +125,10 @@ def pytest_terminal_summary(
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
+    """Skip ``juju_setup``/``juju_teardown`` tests when the matching ``--no-juju-*`` flag is set.
+
+    Pytest hook: https://docs.pytest.org/en/stable/reference/reference.html#pytest.hookspec.pytest_collection_modifyitems
+    """
     if config.getoption("--no-juju-teardown"):
         skipper = pytest.mark.skip(reason="--no-juju-teardown provided.")
         for item in items:
@@ -131,13 +143,18 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 
 class JujuFactory(typing.Protocol):
-    """Factory for per-test temporary Juju models."""
+    """Protocol for a factory of per-test temporary Juju models.
+
+    Used as a type annotation for fixtures yielding the concrete
+    factory (see the ``juju_factory`` fixture).
+    """
 
     def get_juju(self, suffix: str) -> jubilant.Juju:
         """Return a `jubilant.Juju` for a model named `<prefix>-<suffix>`.
 
-        If `suffix` is empty, the model is named `<prefix>`. The same factory
-        cannot return two `Juju` instances for the same model name; raises
+        `<prefix>` is the factory's configured model-name prefix. If `suffix`
+        is empty, the model is named `<prefix>`. The same factory cannot
+        return two `Juju` instances for the same model name; raises
         `ValueError` if called twice with the same `suffix`.
         """
         ...
