@@ -101,10 +101,7 @@ This test will spin up two temporary models, one called `jubilant-<randomhex>-te
 
 `pytest tests/integration --juju-model hello` will use `hello` instead of `jubilant-<randomhex>`. The module names combined with the suffixes you defined in the fixtures will give all generated models predictable names. The tests will reuse the existing models (if found) or create new ones with those names.
 
-You can optionally pass `controller` and `cloud` to `juju_factory.get_juju` to 
-deploy individual models on specific controllers or clouds. This is useful for
-testing cross-model relations between different deployment types, such as machine
-and Kubernetes models on separate controllers.
+You can optionally pass `controller` and `cloud` to `juju_factory.get_juju` to deploy individual models on specific controllers or clouds. This is useful for testing cross-model relations between different deployment types, such as machine and Kubernetes models on separate controllers.
 
 
 ## CLI options
@@ -177,8 +174,7 @@ pytest tests/integration/test_bar.py --juju-model hello --no-juju-teardown
 
 ### `--juju-controller`
 
-Set the Juju controller to use when creating new models. This is equivalent to
-passing `--controller` to `juju add-model`.
+Set the default Juju controller to use when creating new models. This is equivalent to passing `--controller` to `juju add-model`. It can be overridden by passing the `controller` argument to `JujuFactory.get_juju`. If neither is specified, Juju falls back to the currently active controller.
 
 **Usage:**
 
@@ -189,8 +185,7 @@ pytest tests/integration --juju-controller my-controller
 
 ### `--juju-cloud`
 
-Set the Juju cloud (or cloud/region) to use when creating new models.
-This is equivalent to passing the cloud argument to `juju add-model`.
+Set the default Juju cloud (or cloud/region) to use when creating new models. This is equivalent to passing the cloud argument to `juju add-model`. It can be overridden by passing the `cloud` argument to `JujuFactory.get_model`. If neither is specified, Juju falls back to the currently active cloud.
 
 **Usage:**
 
