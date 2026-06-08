@@ -185,7 +185,7 @@ pytest tests/integration --juju-controller my-controller
 
 ### `--juju-cloud`
 
-Set the default Juju cloud (or cloud/region) to use when creating new models. This is equivalent to passing the cloud argument to `juju add-model`. It can be overridden by passing the `cloud` argument to `JujuFactory.get_model`. If neither is specified, Juju falls back to the currently active cloud.
+Set the default Juju cloud (or cloud/region) to use when creating new models. This is equivalent to passing the cloud argument to `juju add-model`. It can be overridden by passing the `cloud` argument to `JujuFactory.get_juju`. If neither is specified, Juju falls back to the currently active cloud.
 
 **Usage:**
 
