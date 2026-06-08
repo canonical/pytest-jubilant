@@ -170,15 +170,15 @@ class JujuFactory(typing.Protocol):
     ) -> jubilant.Juju:
         """Return a `jubilant.Juju` for a model named `<prefix>-<suffix>`.
 
-        `<prefix>` is the factory's configured model-name prefix. If `suffix`
-        is empty, the model is named `<prefix>`. The same factory cannot
-        return two `Juju` instances for the same model name; raises
-       `ValueError` if called twice with the same `suffix`.
-       
-       Pass `controller` and/or `cloud` to override the default Juju controller
-       and cloud on a per-model basis. These default to the values passed
-       on the command line (`--juju-controller`/`--juju-cloud`), with Juju falling
-       back to the active controller and cloud if they're not specified.
+         `<prefix>` is the factory's configured model-name prefix. If `suffix`
+         is empty, the model is named `<prefix>`. The same factory cannot
+         return two `Juju` instances for the same model name; raises
+        `ValueError` if called twice with the same `suffix`.
+
+        Pass `controller` and/or `cloud` to override the default Juju controller
+        and cloud on a per-model basis. These default to the values passed
+        on the command line (`--juju-controller`/`--juju-cloud`), with Juju falling
+        back to the active controller and cloud if they're not specified.
         """
         ...
 
