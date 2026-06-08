@@ -46,6 +46,18 @@ def pytest_addoption(parser: pytest.Parser):
         help="Prefix for Juju model names.",
     )
     group.addoption(
+        "--juju-controller",
+        action="store",
+        default=None,
+        help="The default Juju controller to use for tests.",
+    )
+    group.addoption(
+        "--juju-cloud",
+        action="store",
+        default=None,
+        help="The default Juju cloud to use for tests.",
+    )
+    group.addoption(
         "--no-juju-setup",
         action="store_true",
         default=False,
@@ -149,13 +161,24 @@ class JujuFactory(typing.Protocol):
     factory (see the ``juju_factory`` fixture).
     """
 
-    def get_juju(self, suffix: str) -> jubilant.Juju:
+    def get_juju(
+        self,
+        suffix: str,
+        *,
+        controller: str | None = None,
+        cloud: str | None = None,
+    ) -> jubilant.Juju:
         """Return a `jubilant.Juju` for a model named `<prefix>-<suffix>`.
 
         `<prefix>` is the factory's configured model-name prefix. If `suffix`
         is empty, the model is named `<prefix>`. The same factory cannot
         return two `Juju` instances for the same model name; raises
         `ValueError` if called twice with the same `suffix`.
+
+        Pass `controller` and/or `cloud` to override the default Juju controller
+        and cloud on a per-model basis. These default to the values passed
+        on the command line (`--juju-controller`/`--juju-cloud`), with Juju falling
+        back to the active controller and cloud if they're not specified.
         """
         ...
 
@@ -169,14 +192,24 @@ class _JujuFactory:
         allow_existing_model: bool = False,
         log_path: pathlib.Path | None = None,
         add_model: bool = False,
+        controller: str | None = None,
+        cloud: str | None = None,
     ):
         self._model_prefix = model_prefix
         self._models: dict[str, jubilant.Juju] = {}
         self._allow_existing_model = allow_existing_model
         self._log_path = log_path
         self._add_model = add_model
+        self._controller = controller
+        self._cloud = cloud
 
-    def get_juju(self, suffix: str) -> jubilant.Juju:
+    def get_juju(
+        self,
+        suffix: str,
+        *,
+        controller: str | None = None,
+        cloud: str | None = None,
+    ) -> jubilant.Juju:
         model_name = f"{self._model_prefix}-{suffix}" if suffix else self._model_prefix
         if model_name in self._models:
             raise ValueError(
@@ -184,10 +217,16 @@ class _JujuFactory:
                 "choose a different prefix."
             )
 
+        # Set controller and cloud for add_model, preferring args to factory defaults
+        juju_controller = controller if controller is not None else self._controller
+        juju_cloud = cloud if cloud is not None else self._cloud
+
+        # Include the controller prefix in the model_name for subsequent Juju calls.
+        model_name = f"{juju_controller}:{model_name}" if juju_controller else model_name
         juju = jubilant.Juju(model=model_name)
         if self._add_model:
             try:
-                juju.add_model(model_name)
+                juju.add_model(model=model_name, cloud=juju_cloud)
             except jubilant.CLIError as e:
                 # If --model is set (_allow_existing_model is True), then the user wants collisions.
                 # If the name is randomly generated, the chance of colliding with another
@@ -217,7 +256,8 @@ class _JujuFactory:
                 end_msg = f"--- end of `juju debug-log` for model {model} ---"
                 print(f"{msg}\n{last_n_lines}\n{end_msg}", file=sys.stderr, flush=True)
             if self._log_path:
-                jdl_path = self._log_path / (model + "-juju-debug.log")
+                model_filename = model.replace(":", "-")
+                jdl_path = self._log_path / (model_filename + "-juju-debug.log")
                 jdl_path.write_text(jdl)
                 logging.info("Wrote full `juju debug-log` for model %s to %s", model, jdl_path)
 
@@ -268,11 +308,15 @@ def juju_factory(
     module_name = typing.cast("str", request.module.__name__)  # type: ignore
     module_part = module_name.rpartition(".")[-1].replace("_", "-")
     dump_logs = typing.cast("pathlib.Path | None", request.config.getoption("--juju-dump-logs"))
+    controller_name = typing.cast("str | None", request.config.getoption("--juju-controller"))
+    cloud_name = typing.cast("str | None", request.config.getoption("--juju-cloud"))
     factory = _JujuFactory(
         model_prefix=f"{_model_prefix}-{module_part}",
         allow_existing_model=bool(request.config.getoption("--juju-model")),
         log_path=dump_logs,
         add_model=not typing.cast("bool", request.config.getoption("--no-juju-setup")),
+        controller=controller_name,
+        cloud=cloud_name,
     )
 
     yield factory
