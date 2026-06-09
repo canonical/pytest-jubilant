@@ -210,23 +210,28 @@ class _JujuFactory:
         controller: str | None = None,
         cloud: str | None = None,
     ) -> jubilant.Juju:
-        model_name = f"{self._model_prefix}-{suffix}" if suffix else self._model_prefix
+        # Set controller and cloud for add_model, preferring args to factory defaults
+        juju_controller = controller if controller is not None else self._controller
+        juju_cloud = cloud if cloud is not None else self._cloud
+
+        short_model_name = f"{self._model_prefix}-{suffix}" if suffix else self._model_prefix
+
+        # Include the controller prefix in the model_name for subsequent Juju calls.
+        model_name = (
+            f"{juju_controller}:{short_model_name}" if juju_controller else short_model_name
+        )
         if model_name in self._models:
             raise ValueError(
                 f"model {model_name} already registered on this juju_factory. "
                 "choose a different prefix."
             )
-
-        # Set controller and cloud for add_model, preferring args to factory defaults
-        juju_controller = controller if controller is not None else self._controller
-        juju_cloud = cloud if cloud is not None else self._cloud
-
-        # Include the controller prefix in the model_name for subsequent Juju calls.
-        model_name = f"{juju_controller}:{model_name}" if juju_controller else model_name
         juju = jubilant.Juju(model=model_name)
         if self._add_model:
             try:
-                juju.add_model(model=model_name, cloud=juju_cloud)
+                # juju add-model does not support the <controller>:<model> syntax
+                juju.add_model(
+                    model=short_model_name, cloud=juju_cloud, controller=juju_controller
+                )
             except jubilant.CLIError as e:
                 # If --model is set (_allow_existing_model is True), then the user wants collisions.
                 # If the name is randomly generated, the chance of colliding with another
