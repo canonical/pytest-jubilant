@@ -24,3 +24,8 @@ def log_actions_charm():
     if not charm_path.exists():
         raise FileNotFoundError(f"charm not found at {charm_path}")
     return charm_path.absolute()
+
+
+@pytest.fixture(scope="session")
+def juju_controller():
+    return os.environ.get("JUJU_CONTROLLER", "concierge-lxd")
