@@ -33,6 +33,35 @@ The following checks are all required in CI:
 You'll need to pack the test charms and set up environment variables to point to them before running the integration tests locally.
 
 
+## Pull requests
+
+Changes are proposed as [pull requests on GitHub](https://github.com/canonical/pytest-jubilant/pulls).
+
+Pull requests should have a short title that follows the [conventional commit style](https://www.conventionalcommits.org/en/) using one of these types:
+
+- chore
+- ci
+- docs
+- feat
+- fix
+- perf
+- refactor
+- revert
+- test
+
+Some examples:
+
+- feat: add a CLI option to keep models after a test failure
+- fix!: correct the return type of the `pack` helper
+- docs: clarify how to re-run a single part of the test suite
+
+We consider `pytest-jubilant` too small a project to use scopes, so we don't use them.
+
+Note that the commit messages to the PR's branch do not need to follow the conventional commit format, as these will be squashed into a single commit to `main` using the PR title as the commit message.
+
+To help us review your changes, please rebase your pull request onto the `main` branch before you request a review. If you need to bring in the latest changes from `main` after the review has started, please use a merge commit.
+
+
 ## Releasing
 
 To release a new version of `pytest-jubilant`, create a Github release. The tag chosen will determine the library's version on release. Always include a description of what is included in the new release and why.
