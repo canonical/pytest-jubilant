@@ -46,8 +46,7 @@ pytest-jubilant = "pytest_jubilant._main"
 
 [tool.pytest.ini_options]
 # Promote warnings (deprecations, resource-cleanup leaks, etc.) to errors so
-# they surface in CI rather than going unnoticed. Part of the Charm Tech
-# -Werror rollout (roadmap 26.10/w-error).
+# they surface in CI rather than going unnoticed.
 filterwarnings = [
     "error",
 ]
