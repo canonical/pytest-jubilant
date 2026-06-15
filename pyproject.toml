@@ -44,6 +44,13 @@ Issues = "https://github.com/canonical/pytest-jubilant/issues"
 [project.entry-points.pytest11]
 pytest-jubilant = "pytest_jubilant._main"
 
+[tool.pytest.ini_options]
+# Promote warnings (deprecations, resource-cleanup leaks, etc.) to errors so
+# they surface in CI rather than going unnoticed.
+filterwarnings = [
+    "error",
+]
+
 [tool.ruff]
 line-length = 99
 target-version = "py38"
