@@ -714,6 +714,9 @@ name = "isort"
 version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
+    "python_full_version >= '3.12'",
+    "python_full_version == '3.11.*'",
+    "python_full_version == '3.10.*'",
     "python_full_version == '3.9.*'",
 ]
 dependencies = [
@@ -722,20 +725,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1e/82/fa43935523efdfcce6abbae9da7f372b627b27142c3419fcf13bf5b0c397/isort-6.1.0.tar.gz", hash = "sha256:9b8f96a14cfee0677e78e941ff62f03769a06d412aabb9e2a90487b3b7e8d481", size = 824325, upload-time = "2025-10-01T16:26:45.027Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/cc/9b681a170efab4868a032631dea1e8446d8ec718a7f657b94d49d1a12643/isort-6.1.0-py3-none-any.whl", hash = "sha256:58d8927ecce74e5087aef019f778d4081a3b6c98f15a80ba35782ca8a2097784", size = 94329, upload-time = "2025-10-01T16:26:43.291Z" },
-]
-
-[[package]]
-name = "isort"
-version = "8.0.1"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.12'",
-    "python_full_version == '3.11.*'",
-    "python_full_version == '3.10.*'",
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ef/7c/ec4ab396d31b3b395e2e999c8f46dec78c5e29209fac49d1f4dace04041d/isort-8.0.1.tar.gz", hash = "sha256:171ac4ff559cdc060bcfff550bc8404a486fee0caab245679c2abe7cb253c78d", size = 769592, upload-time = "2026-02-28T10:08:20.685Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/95/c7c34aa53c16353c56d0b802fba48d5f5caa2cdee7958acbcb795c830416/isort-8.0.1-py3-none-any.whl", hash = "sha256:28b89bc70f751b559aeca209e6120393d43fbe2490de0559662be7a9787e3d75", size = 89733, upload-time = "2026-02-28T10:08:19.466Z" },
 ]
 
 [[package]]
@@ -1057,7 +1046,7 @@ dependencies = [
     { name = "astroid", version = "4.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "colorama", marker = "python_full_version >= '3.10' and sys_platform == 'win32'" },
     { name = "dill", version = "0.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
-    { name = "isort", version = "8.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "isort", version = "6.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "mccabe", marker = "python_full_version >= '3.10'" },
     { name = "platformdirs", version = "4.10.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "tomli", version = "2.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
@@ -1220,15 +1209,9 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-build = [
-    { name = "build", marker = "python_full_version < '3.9'", specifier = "~=1.2" },
-    { name = "build", marker = "python_full_version == '3.9.*'", specifier = "~=1.4" },
-    { name = "build", marker = "python_full_version >= '3.10'", specifier = "~=1.5" },
-]
+build = [{ name = "build", specifier = "~=1.2" }]
 integration = [
-    { name = "coverage", extras = ["toml"], marker = "python_full_version < '3.9'", specifier = "~=7.6" },
-    { name = "coverage", extras = ["toml"], marker = "python_full_version == '3.9.*'", specifier = "~=7.10" },
-    { name = "coverage", extras = ["toml"], marker = "python_full_version >= '3.10'", specifier = "~=7.13" },
+    { name = "coverage", extras = ["toml"], specifier = "~=7.6" },
     { name = "ops", specifier = ">=2,<4" },
     { name = "pytest", specifier = "~=8.3" },
 ]
@@ -1244,17 +1227,11 @@ tiobe = [
     { name = "pylint", marker = "python_full_version >= '3.10'", specifier = "~=4.0" },
 ]
 tox = [
-    { name = "tox", marker = "python_full_version < '3.9'", specifier = "~=4.25" },
-    { name = "tox", marker = "python_full_version == '3.9.*'", specifier = "~=4.30" },
-    { name = "tox", marker = "python_full_version >= '3.10'", specifier = "~=4.55" },
-    { name = "tox-uv", marker = "python_full_version < '3.9'", specifier = "~=1.13" },
-    { name = "tox-uv", marker = "python_full_version == '3.9.*'", specifier = "~=1.28" },
-    { name = "tox-uv", marker = "python_full_version >= '3.10'", specifier = "~=1.35" },
+    { name = "tox", specifier = "~=4.25" },
+    { name = "tox-uv", specifier = "~=1.13" },
 ]
 unit = [
-    { name = "coverage", extras = ["toml"], marker = "python_full_version < '3.9'", specifier = "~=7.6" },
-    { name = "coverage", extras = ["toml"], marker = "python_full_version == '3.9.*'", specifier = "~=7.10" },
-    { name = "coverage", extras = ["toml"], marker = "python_full_version >= '3.10'", specifier = "~=7.13" },
+    { name = "coverage", extras = ["toml"], specifier = "~=7.6" },
     { name = "pytest", specifier = "~=8.3" },
 ]
 zizmor = [{ name = "zizmor", marker = "python_full_version >= '3.10'", specifier = "~=1.23" }]
