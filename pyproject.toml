@@ -21,17 +21,52 @@ license = "Apache-2.0"
 
 [dependency-groups]
 lint = [
-    "pyright",
-    "ruff",
+    "pyright~=1.1",
+    "ruff~=0.15",
 ]
 unit = [
-    "coverage[toml]",
-    "pytest",
+    "coverage[toml]~=7.13 ; python_version >= '3.10'",
+    "coverage[toml]~=7.10 ; python_version == '3.9.*'",
+    "coverage[toml]~=7.6 ; python_version < '3.9'",
+    "pytest~=8.3",
 ]
 integration = [
-    "coverage[toml]",
-    "pytest",
+    "coverage[toml]~=7.13 ; python_version >= '3.10'",
+    "coverage[toml]~=7.10 ; python_version == '3.9.*'",
+    "coverage[toml]~=7.6 ; python_version < '3.9'",
+    "pytest~=8.3",
     "ops>=2,<4",
+]
+# Tool versions consumed by CI workflows. Pinned here so pyproject.toml /
+# uv.lock is the single source of truth — workflows run these via
+# `uv run --only-group <name> <tool> …` (or `uv export --only-group <name>`
+# when the tool must be installed into the system environment).
+tox = [
+    "tox~=4.55 ; python_version >= '3.10'",
+    "tox~=4.30 ; python_version == '3.9.*'",
+    "tox~=4.25 ; python_version < '3.9'",
+    "tox-uv~=1.35 ; python_version >= '3.10'",
+    "tox-uv~=1.28 ; python_version == '3.9.*'",
+    "tox-uv~=1.13 ; python_version < '3.9'",
+]
+build = [
+    "build~=1.5 ; python_version >= '3.10'",
+    "build~=1.4 ; python_version == '3.9.*'",
+    "build~=1.2 ; python_version < '3.9'",
+]
+zizmor = [
+    # zizmor itself requires Python >= 3.10; the marker lets the lock resolve
+    # against this project's broader requires-python (>=3.8). CI picks a recent
+    # Python so this is fine in practice.
+    "zizmor~=1.23 ; python_version >= '3.10'",
+]
+tiobe = [
+    # TIOBE runs on a recent self-hosted noble runner, so no older-Python markers.
+    "flake8~=7.3 ; python_version >= '3.9'",
+    "flake8~=5.0 ; python_version < '3.9'",
+    "pylint~=4.0 ; python_version >= '3.10'",
+    "pylint~=3.3 ; python_version == '3.9.*'",
+    "pylint~=3.2 ; python_version < '3.9'",
 ]
 
 [tool.setuptools.dynamic]

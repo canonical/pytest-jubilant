@@ -21,23 +21,23 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
 
-      - run: uv tool install tox --with tox-uv
-
         # We could store the coverage report from the regular run, but this is cheap to do
         # and keeps this isolated.
       - name: Run unit tests and generate coverage report
         run: |
-          tox -e unit
+          uv run --only-group tox tox -e unit
           mkdir .report
-          uvx coverage xml -o .report/coverage.xml
+          uv run --only-group unit coverage xml -o .report/coverage.xml
 
         # Note that these are dependencies for the tools that the TIOBE action will run,
         # which is done in the global environment, rather than a venv, as we do with the
-        # unit tests.
+        # unit tests. Versions for flake8 and pylint are pinned via the `tiobe`
+        # dependency group in pyproject.toml.
       - name: Install dependencies
         run: |
           uv export --no-emit-project --frozen --no-hashes > requirements.txt
-          pip install flake8 pylint -r requirements.txt --break-system-packages
+          uv export --only-group tiobe --frozen --no-hashes > tiobe-requirements.txt
+          pip install -r requirements.txt -r tiobe-requirements.txt --break-system-packages
 
       - name: TICS GitHub Action
         uses: tiobe/tics-github-action@016a4d79f3027fe7b4a2901619a58c745ab7cadf  # v3.10.0

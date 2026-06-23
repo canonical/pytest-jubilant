@@ -64,7 +64,6 @@ jobs:
       - run: sudo snap install --classic concierge
       - run: sudo concierge prepare -c .github/concierge/test.yaml
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
-      - run: uv tool install tox --with tox-uv
       - uses: actions/download-artifact@v8
         with:
           pattern: "*-charm"
@@ -77,6 +76,6 @@ jobs:
             # uppercase and append suffix: simple -> SIMPLE_CHARM_PATH
             echo "${name^^}_CHARM_PATH=${{ github.workspace }}/${charm}" >> "$GITHUB_ENV"
           done
-      - run: tox -e integration -- ${{ matrix.test }}
+      - run: uv run --only-group tox tox -e integration -- ${{ matrix.test }}
         env:
           TMPDIR: ${{ github.workspace }}
