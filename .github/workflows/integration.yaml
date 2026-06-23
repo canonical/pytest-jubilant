@@ -76,6 +76,7 @@ jobs:
             # uppercase and append suffix: simple -> SIMPLE_CHARM_PATH
             echo "${name^^}_CHARM_PATH=${{ github.workspace }}/${charm}" >> "$GITHUB_ENV"
           done
-      - run: uv run --only-group tox tox -e integration -- ${{ matrix.test }}
+      - run: uv run --only-group tox tox -e integration -- "$MATRIX_TEST"
         env:
+          MATRIX_TEST: ${{ matrix.test }}
           TMPDIR: ${{ github.workspace }}
