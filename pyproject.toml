@@ -41,9 +41,6 @@ tox = [
     "tox~=4.25",
     "tox-uv~=1.13",
 ]
-build = [
-    "build~=1.2",
-]
 zizmor = [
     # zizmor itself requires Python >= 3.10; the marker lets the lock resolve
     # against this project's broader requires-python (>=3.8). CI picks a recent
@@ -51,15 +48,11 @@ zizmor = [
     "zizmor~=1.23 ; python_version >= '3.10'",
 ]
 tiobe = [
-    # TIOBE runs on a recent self-hosted noble runner, so we want the newest
-    # tool versions there. uv doesn't fork-resolve these automatically, so the
-    # per-Python markers are needed to keep older Pythons resolvable while
-    # still pulling the latest on 3.10+.
-    "flake8~=7.3 ; python_version >= '3.9'",
-    "flake8~=5.0 ; python_version < '3.9'",
-    "pylint~=4.0 ; python_version >= '3.10'",
-    "pylint~=3.3 ; python_version == '3.9.*'",
-    "pylint~=3.2 ; python_version < '3.9'",
+    # TIOBE runs on a self-hosted noble runner (Python 3.12); the marker
+    # pins resolution to that interpreter so the lock stays resolvable
+    # against this project's broader requires-python (>=3.8).
+    "flake8~=7.3 ; python_version == '3.12.*'",
+    "pylint~=4.0 ; python_version == '3.12.*'",
 ]
 
 [tool.setuptools.dynamic]

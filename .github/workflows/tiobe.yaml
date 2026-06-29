@@ -35,9 +35,8 @@ jobs:
         # dependency group in pyproject.toml.
       - name: Install dependencies
         run: |
-          uv export --no-emit-project --frozen --no-hashes > requirements.txt
-          uv export --only-group tiobe --frozen --no-hashes > tiobe-requirements.txt
-          pip install -r requirements.txt -r tiobe-requirements.txt --break-system-packages
+          uv export --no-emit-project --frozen --no-hashes --group tiobe > requirements.txt
+          pip install -r requirements.txt --break-system-packages
 
       - name: TICS GitHub Action
         uses: tiobe/tics-github-action@016a4d79f3027fe7b4a2901619a58c745ab7cadf  # v3.10.0
