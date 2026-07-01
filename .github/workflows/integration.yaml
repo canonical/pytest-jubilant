@@ -13,7 +13,7 @@ jobs:
       tests: ${{ steps.tests.outputs.result }}
       charms: ${{ steps.charms.outputs.result }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
@@ -38,7 +38,7 @@ jobs:
         charm: ${{ fromJson(needs.init.outputs.charms) }}
     runs-on: ubuntu-24.04  # matching the charms' base for destructive mode packing
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - run: sudo snap install --classic charmcraft
@@ -58,7 +58,7 @@ jobs:
       matrix:
         test: ${{ fromJson(needs.init.outputs.tests) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - run: sudo snap install --classic concierge
