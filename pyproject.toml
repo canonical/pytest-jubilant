@@ -62,6 +62,14 @@ tiobe = [
 # a uvx bootstrap, or a CI re-resolve. Complements (doesn't replace) the
 # Dependabot cooldown, which only protects Dependabot-authored PRs.
 exclude-newer = "7 days"
+# Refuse to install any source distribution; only wheels are accepted. An
+# sdist runs the package's setup.py / PEP 517 build hooks at install time,
+# which is arbitrary code execution — wheels carry no such hooks. Verified
+# 2026-07-02 that 0/571 dependencies across the fleet's uv.lock files are
+# sdist-only, so this is a zero-cost change today. If a future dependency
+# genuinely requires an sdist, allow it explicitly via
+# `[tool.uv].no-build-package = ["specific-pkg"]` rather than lifting this.
+no-build = true
 
 [tool.setuptools.dynamic]
 version = {attr = "pytest_jubilant._version.__version__"}
