@@ -21,7 +21,7 @@ jobs:
         id: tests
         run: |
           set -xueo pipefail
-          result=$(uv run --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -Rnc '[inputs]')
+          result=$(uv run --locked --group integration pytest --collect-only -q --no-header tests/integration | grep '::' | jq -Rnc '[inputs]')
           echo "result=$result" >> "$GITHUB_OUTPUT"
       - name: Collect charm directories
         id: charms
@@ -76,7 +76,7 @@ jobs:
             # uppercase and append suffix: simple -> SIMPLE_CHARM_PATH
             echo "${name^^}_CHARM_PATH=${{ github.workspace }}/${charm}" >> "$GITHUB_ENV"
           done
-      - run: uv run --only-group tox tox -e integration -- "$MATRIX_TEST"
+      - run: uv run --locked --only-group tox tox -e integration -- "$MATRIX_TEST"
         env:
           MATRIX_TEST: ${{ matrix.test }}
           TMPDIR: ${{ github.workspace }}
