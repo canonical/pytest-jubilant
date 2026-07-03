@@ -62,62 +62,6 @@ tiobe = [
 # a uvx bootstrap, or a CI re-resolve. Complements (doesn't replace) the
 # Dependabot cooldown, which only protects Dependabot-authored PRs.
 exclude-newer = "7 days"
-# Refuse to install any source distribution; only wheels are accepted. An
-# sdist runs the package's setup.py / PEP 517 build hooks at install time,
-# which is arbitrary code execution — wheels carry no such hooks. If a
-# future dependency genuinely requires an sdist, remove it from the list
-# below explicitly rather than relaxing the pattern.
-# Enumerate every dep so the workspace project itself remains buildable
-# (a global `no-build = true` also blocks the current project's editable
-# install, which breaks `uv sync` / `uv run` at the repo root). Regenerate
-# this list when uv.lock changes; a `uv lock --check` in CI catches drift.
-no-build-package = [
-    "astroid",
-    "cachetools",
-    "chardet",
-    "colorama",
-    "coverage",
-    "deprecated",
-    "dill",
-    "distlib",
-    "exceptiongroup",
-    "filelock",
-    "flake8",
-    "importlib-metadata",
-    "importlib-resources",
-    "iniconfig",
-    "isort",
-    "jubilant",
-    "mccabe",
-    "nodeenv",
-    "opentelemetry-api",
-    "ops",
-    "packaging",
-    "platformdirs",
-    "pluggy",
-    "pycodestyle",
-    "pyflakes",
-    "pylint",
-    "pyproject-api",
-    "pyright",
-    "pytest",
-    "python-discovery",
-    "pyyaml",
-    "ruff",
-    "tomli",
-    "tomli-w",
-    "tomlkit",
-    "tox",
-    "tox-uv",
-    "tox-uv-bare",
-    "typing-extensions",
-    "uv",
-    "virtualenv",
-    "websocket-client",
-    "wrapt",
-    "zipp",
-    "zizmor",
-]
 
 [tool.setuptools.dynamic]
 version = {attr = "pytest_jubilant._version.__version__"}
