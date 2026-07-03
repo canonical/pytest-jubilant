@@ -73,7 +73,11 @@ def test_fail(juju_factory):
     custom_dir = tmp_path / "custom-logs"
 
     result = pytester.runpytest_subprocess(
-        "--juju-model", "model-t", "--juju-dump-logs", str(custom_dir)
+        "--log-cli-level=DEBUG",
+        "--juju-model",
+        "model-t",
+        "--juju-dump-logs",
+        str(custom_dir),
     )
 
     # We expect this session to fail.

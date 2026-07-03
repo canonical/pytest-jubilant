@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import pathlib
 import secrets
-import sys
 import time
 import typing
 from typing import Callable
@@ -19,6 +18,8 @@ import pytest
 
 if typing.TYPE_CHECKING:
     from _pytest.terminal import TerminalReporter
+
+logger_plugin = logging.getLogger("pytest-jubilant")
 
 # If the test failure occurs in the middle of a Juju operation, like processing an action,
 # then the logs for the operation in question might not be fully processed by Juju yet.
@@ -259,12 +260,14 @@ class _JujuFactory:
                     else jdl
                 )
                 end_msg = f"--- end of `juju debug-log` for model {model} ---"
-                print(f"{msg}\n{last_n_lines}\n{end_msg}", file=sys.stderr, flush=True)
+                logger_plugin.debug("%s\n%s\n%s", msg, last_n_lines, end_msg)
             if self._log_path:
                 model_filename = model.replace(":", "-")
                 jdl_path = self._log_path / (model_filename + "-juju-debug.log")
                 jdl_path.write_text(jdl)
-                logging.info("Wrote full `juju debug-log` for model %s to %s", model, jdl_path)
+                logger_plugin.info(
+                    "Wrote full `juju debug-log` for model %s to %s", model, jdl_path
+                )
 
     def _teardown(self, force: bool = False):
         for model, juju in self._models.items():
