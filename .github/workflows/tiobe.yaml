@@ -15,14 +15,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          # Matches the marker on flake8/pylint in the `tiobe` dependency
-          # group; the repo's .python-version (3.13) would otherwise be
-          # picked up and skip installing them.
-          python-version: '3.12'
-
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
 

@@ -909,8 +909,8 @@ lint = [
     { name = "ruff" },
 ]
 tiobe = [
-    { name = "flake8", marker = "python_full_version == '3.12.*'" },
-    { name = "pylint", marker = "python_full_version == '3.12.*'" },
+    { name = "flake8", marker = "python_full_version >= '3.12'" },
+    { name = "pylint", marker = "python_full_version >= '3.12'" },
 ]
 tox = [
     { name = "tox", version = "4.25.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
@@ -947,8 +947,8 @@ lint = [
     { name = "ruff", specifier = "~=0.15" },
 ]
 tiobe = [
-    { name = "flake8", marker = "python_full_version == '3.12.*'", specifier = "~=7.3" },
-    { name = "pylint", marker = "python_full_version == '3.12.*'", specifier = "~=4.0" },
+    { name = "flake8", marker = "python_full_version >= '3.12'", specifier = "~=7.3" },
+    { name = "pylint", marker = "python_full_version >= '3.12'", specifier = "~=4.0" },
 ]
 tox = [
     { name = "tox", specifier = "~=4.25" },
