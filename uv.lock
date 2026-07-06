@@ -985,7 +985,7 @@ integration = [
     { name = "pytest", specifier = "~=8.3" },
 ]
 lint = [
-    { name = "codespell", specifier = ">=2.4,<2.5" },
+    { name = "codespell", specifier = ">=2.4,<3" },
     { name = "pyright", specifier = "~=1.1" },
     { name = "ruff", specifier = "~=0.15" },
 ]
