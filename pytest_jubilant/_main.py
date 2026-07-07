@@ -12,12 +12,13 @@ import secrets
 import sys
 import time
 import typing
-from typing import Callable
 
 import jubilant
 import pytest
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Callable
+
     from _pytest.terminal import TerminalReporter
 
 # If the test failure occurs in the middle of a Juju operation, like processing an action,
