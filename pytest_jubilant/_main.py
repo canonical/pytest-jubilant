@@ -11,12 +11,13 @@ import pathlib
 import secrets
 import time
 import typing
-from typing import Callable
 
 import jubilant
 import pytest
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Callable
+
     from _pytest.terminal import TerminalReporter
 
 logger_plugin = logging.getLogger("pytest-jubilant")
