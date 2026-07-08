@@ -25,6 +25,23 @@ updates:
           - "*"
 
   # ===================================================================
+  # pre-commit hooks: routine lane (monthly, single grouped PR)
+  # ===================================================================
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 100
+    cooldown:
+      default-days: 7
+    groups:
+      pre-commit-hooks:
+        patterns:
+          - "*"
+
+  # ===================================================================
   # Python (uv): routine lane (monthly, grouped along three seams)
   # ===================================================================
   - package-ecosystem: "uv"
