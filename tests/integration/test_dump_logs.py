@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import pathlib
 import typing
-from typing import Iterable
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Iterable
+
     import pytest
 
 pytest_plugins = ["pytester"]
