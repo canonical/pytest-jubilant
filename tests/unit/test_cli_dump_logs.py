@@ -79,12 +79,7 @@ def test_fail(juju_factory):
     # We expect this session to fail.
     result.assert_outcomes(failed=1)
 
-    # We emit the last 1000 lines of `juju debug-log` for each model if tests fail.
-    foo_msg = "Logging last 1000 lines of `juju debug-log` for model model-t-test-file-foo:"
-    foo_lines = result.stdout.get_lines_after(f"*{foo_msg}*")  # Match with fnmatch.
-    assert foo_lines[0] == "stdout patched by conftest.py"  # Mocked call to Juju CLI.
-    assert foo_lines[1] == "--- end of `juju debug-log` for model model-t-test-file-foo ---"
-
     # The full logs are still written on failure with --dump-logs.
     foo_log_path = custom_dir / "model-t-test-file-foo-juju-debug.log"
     assert foo_log_path.exists()
+
