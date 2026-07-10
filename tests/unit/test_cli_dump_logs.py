@@ -82,4 +82,3 @@ def test_fail(juju_factory):
     # The full logs are still written on failure with --dump-logs.
     foo_log_path = custom_dir / "model-t-test-file-foo-juju-debug.log"
     assert foo_log_path.exists()
-
