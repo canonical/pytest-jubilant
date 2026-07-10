@@ -216,7 +216,7 @@ pytest tests/integration -k test_something --juju-model hello --juju-switch
 
 When all the tests in a module have completed, but prior to tearing down the models owned by a [juju_factory](#juju_factory), dump the `juju debug-log` for each managed model into the specified directory.
 
-- By default, logs aren't dumped, and `juju debug-log` is only executed if tests failed, so that the last log lines can be sent to stderr.
+- By default, `juju debug-log` is not run, and logs aren't dumped.
 - If `--juju-dump-logs` is passed, logs are dumped to `<CWD>/.logs/`.
 - If `--juju-dump-logs <target dir>` is passed, logs are dumped to `<target dir>/`.
 
