@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import pathlib
 import secrets
-import sys
 import time
 import typing
 
@@ -21,6 +20,8 @@ if typing.TYPE_CHECKING:
 
     from _pytest.terminal import TerminalReporter
 
+logger = logging.getLogger("pytest-jubilant")
+
 # If the test failure occurs in the middle of a Juju operation, like processing an action,
 # then the logs for the operation in question might not be fully processed by Juju yet.
 # Testing with a mid-action failure several hundred times, 2 seconds seems like a reliable
@@ -28,7 +29,6 @@ if typing.TYPE_CHECKING:
 # on factors like system load). Several hundred tests with a 1 second wait had a handful of
 # cases where the logs were missing the latest lines.
 _LOG_WAIT = 2.0  # Time to wait before processing logs if we need them.
-_LOG_LIMIT = 1000  # Number of log lines to dump to stderr on failure.
 
 # Unique per-session key to stash the model prefix for later output.
 _MODEL_PREFIX_KEY = pytest.StashKey[str]()
@@ -245,27 +245,17 @@ class _JujuFactory:
         self._models[model_name] = juju
         return juju
 
-    def _dump_all_logs(self, *, also_log_lines: int = 0):
-        if not (also_log_lines or self._log_path):
+    def _dump_all_logs(self):
+        if not self._log_path:
             return
-        if self._log_path:
-            self._log_path.mkdir(parents=True, exist_ok=True)
+
+        self._log_path.mkdir(parents=True, exist_ok=True)
         for model, juju in self._models.items():
-            jdl = juju.debug_log(limit=0 if self._log_path else also_log_lines)
-            if also_log_lines:
-                msg = f"Logging last {also_log_lines} lines of `juju debug-log` for model {model}:"
-                last_n_lines = (
-                    "\n".join(jdl.rsplit("\n", also_log_lines)[-also_log_lines:])
-                    if self._log_path
-                    else jdl
-                )
-                end_msg = f"--- end of `juju debug-log` for model {model} ---"
-                print(f"{msg}\n{last_n_lines}\n{end_msg}", file=sys.stderr, flush=True)
-            if self._log_path:
-                model_filename = model.replace(":", "-")
-                jdl_path = self._log_path / (model_filename + "-juju-debug.log")
-                jdl_path.write_text(jdl)
-                logging.info("Wrote full `juju debug-log` for model %s to %s", model, jdl_path)
+            jdl = juju.debug_log()
+            model_filename = model.replace(":", "-")
+            jdl_path = self._log_path / (model_filename + "-juju-debug.log")
+            jdl_path.write_text(jdl)
+            logger.info("Wrote full `juju debug-log` for model %s to %s", model, jdl_path)
 
     def _teardown(self, force: bool = False):
         for model, juju in self._models.items():
@@ -328,10 +318,9 @@ def juju_factory(
     yield factory
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
-    also_log_lines = _LOG_LIMIT if request.session.testsfailed else 0
-    if also_log_lines or dump_logs:
+    if dump_logs:
         _sleep_once()  # Wait for Juju to process logs or the latest lines might be missing
-    factory._dump_all_logs(also_log_lines=also_log_lines)  # pyright: ignore[reportPrivateUsage]
+    factory._dump_all_logs()  # pyright: ignore[reportPrivateUsage]
 
     if not request.config.getoption("--no-juju-teardown"):
         # Match jubilant's temp_model fixture: --force so failed tests with apps
