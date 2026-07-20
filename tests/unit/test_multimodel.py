@@ -4,6 +4,7 @@ import jubilant
 import pytest
 
 import pytest_jubilant
+from pytest_jubilant._main import _juju_arch
 
 
 @pytest.fixture(scope="module")
@@ -37,6 +38,20 @@ def test_multimodel(
             timeout=None,
         ),
         call(
+            [
+                "juju",
+                "set-model-constraints",
+                "--model",
+                "jubilant-deadbeef-test-multimodel",
+                f"arch={_juju_arch()}",
+            ],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+            input=None,
+            timeout=None,
+        ),
+        call(
             ["juju", "add-model", "--no-switch", "jubilant-deadbeef-test-multimodel-istio"],
             check=True,
             capture_output=True,
@@ -45,7 +60,35 @@ def test_multimodel(
             timeout=None,
         ),
         call(
+            [
+                "juju",
+                "set-model-constraints",
+                "--model",
+                "jubilant-deadbeef-test-multimodel-istio",
+                f"arch={_juju_arch()}",
+            ],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+            input=None,
+            timeout=None,
+        ),
+        call(
             ["juju", "add-model", "--no-switch", "jubilant-deadbeef-test-multimodel-tempo"],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+            input=None,
+            timeout=None,
+        ),
+        call(
+            [
+                "juju",
+                "set-model-constraints",
+                "--model",
+                "jubilant-deadbeef-test-multimodel-tempo",
+                f"arch={_juju_arch()}",
+            ],
             check=True,
             capture_output=True,
             encoding="utf-8",

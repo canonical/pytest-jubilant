@@ -9,7 +9,10 @@ def test_cloud_is_passed_to_add_model(
     cli_mock: MagicMock,
     juju_factory: pytest_jubilant.JujuFactory,
 ):
-    """If ``--juju-cloud`` is set, it is passed to ``juju add-model`` as a positional argument."""
+    """If ``--juju-cloud`` is set, it is passed to ``juju add-model`` as a positional argument.
+
+    A cloud may run a different architecture, so no ``arch`` constraint is set in this case.
+    """
     cli_mock.reset_mock()
     juju_factory.get_juju("my-model")
     assert cli_mock.call_args_list == [
@@ -34,7 +37,10 @@ def test_get_juju_overrides_cloud(
     cli_mock: MagicMock,
     juju_factory: pytest_jubilant.JujuFactory,
 ):
-    """If JujuFactory is called with a cloud argument, it should override the CLI argument."""
+    """If JujuFactory is called with a cloud argument, it should override the CLI argument.
+
+    Passing a cloud (here or via ``--juju-cloud``) also suppresses the ``arch`` constraint.
+    """
     cli_mock.reset_mock()
     juju_factory.get_juju("override-model", cloud="override-cloud")
     assert cli_mock.call_args_list == [
