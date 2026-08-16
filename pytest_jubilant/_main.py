@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import pathlib
+import platform
 import secrets
 import time
 import typing
@@ -32,6 +33,23 @@ _LOG_WAIT = 2.0  # Time to wait before processing logs if we need them.
 
 # Unique per-session key to stash the model prefix for later output.
 _MODEL_PREFIX_KEY = pytest.StashKey[str]()
+
+# Map Python's platform.machine() names to the architecture names Juju uses.
+# Anything not listed is passed through unchanged, since names like amd64, arm64,
+# s390x, and riscv64 already match. Compare concierge's goArchToJujuArch.
+_MACHINE_TO_JUJU_ARCH = {
+    "x86_64": "amd64",
+    "amd64": "amd64",
+    "aarch64": "arm64",
+    "arm64": "arm64",
+    "ppc64le": "ppc64el",
+}
+
+
+def _juju_arch() -> str:
+    """Return the Juju architecture name for the current runtime."""
+    machine = platform.machine().lower()
+    return _MACHINE_TO_JUJU_ARCH.get(machine, machine)
 
 
 def pytest_addoption(parser: pytest.Parser):
@@ -228,6 +246,7 @@ class _JujuFactory:
             )
         juju = jubilant.Juju(model=model_name)
         if self._add_model:
+            created = True
             try:
                 # juju add-model does not support the <controller>:<model> syntax
                 juju.add_model(
@@ -238,9 +257,15 @@ class _JujuFactory:
                 # If the name is randomly generated, the chance of colliding with another
                 # randomly generated model that wasn't torn down is tiny, so we we'll just raise.
                 if self._allow_existing_model and "already exists" in (e.stderr or ""):
-                    pass
+                    created = False
                 else:
                     raise
+
+            # Match the model architecture to the runtime. When a cloud is explicitly chosen
+            # we are less confident about its architecture, so leave it alone.
+            if created and juju_cloud is None:
+                arch = _juju_arch()
+                juju.model_constraints({"arch": arch})
 
         self._models[model_name] = juju
         return juju

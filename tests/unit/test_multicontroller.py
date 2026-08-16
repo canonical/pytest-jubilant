@@ -4,6 +4,7 @@ import jubilant
 import pytest
 
 import pytest_jubilant
+from pytest_jubilant._main import _juju_arch
 
 K8S_CONTROLLER = "k8s-controller"
 MACHINE_CONTROLLER = "lxd-controller"
@@ -57,11 +58,39 @@ def test_multicontroller(
         call(
             [
                 "juju",
+                "set-model-constraints",
+                "--model",
+                f"{K8S_CONTROLLER}:{MODEL_NAME}-k8s",
+                f"arch={_juju_arch()}",
+            ],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+            input=None,
+            timeout=None,
+        ),
+        call(
+            [
+                "juju",
                 "add-model",
                 "--no-switch",
                 f"{MODEL_NAME}-machine",
                 "--controller",
                 MACHINE_CONTROLLER,
+            ],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+            input=None,
+            timeout=None,
+        ),
+        call(
+            [
+                "juju",
+                "set-model-constraints",
+                "--model",
+                f"{MACHINE_CONTROLLER}:{MODEL_NAME}-machine",
+                f"arch={_juju_arch()}",
             ],
             check=True,
             capture_output=True,

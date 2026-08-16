@@ -187,6 +187,8 @@ pytest tests/integration --juju-controller my-controller
 
 Set the default Juju cloud (or cloud/region) to use when creating new models. This is equivalent to passing the cloud argument to `juju add-model`. It can be overridden by passing the `cloud` argument to `JujuFactory.get_juju`. If neither is specified, Juju falls back to the currently active cloud.
 
+When no cloud is specified (neither here nor via `JujuFactory.get_juju`), each model created by the fixtures is given an `arch` constraint matching the architecture of the machine running the tests, so charms are placed on machines of the same architecture. Specifying a cloud suppresses this, since that cloud may run a different architecture. To override, call `juju.model_constraints({"arch": arch})` with the architecture you require.
+
 **Usage:**
 
 ```shell
