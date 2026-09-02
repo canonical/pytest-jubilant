@@ -363,6 +363,6 @@ def juju(request: pytest.FixtureRequest, juju_factory: JujuFactory):
     """
     juju = juju_factory.get_juju("")
     if request.config.getoption("--juju-switch"):
-        assert juju.model  # noqa: S101
+        assert juju.model  # ruff: ignore[assert]
         juju.cli("switch", juju.model, include_model=False)
     return juju

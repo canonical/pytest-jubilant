@@ -87,7 +87,7 @@ select = [
     "F",  # Pyflakes
     "E",  # Pycodestyle errors
     "W",  # Pycodestyle warnings
-    "I001",  # isort
+    "unsorted-imports",  # I001 (isort)
     "N",  # pep8-naming
     "A",  # flake8-builtins
     "CPY",  # flake8-copyright
@@ -103,25 +103,29 @@ select = [
     "D",  # pyflakes-docstrings
 ]
 ignore = [
-    "D203",  # 1 blank line before class docstring; incompatible with D211 (no blank line before class docstring)
-    "D213",  # newline after opening """ in multi-line docstring; incompatible with D212 (no newline after """)
+    # Incompatible with D211 (blank-line-before-class).
+    "incorrect-blank-line-before-class",  # D203
+    # Incompatible with D212 (multi-line-summary-first-line).
+    "multi-line-summary-second-line",  # D213
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     "CPY",  # Copyright headers
     "D",  # Documentation
-    "S101",  # Asserts
-    "B018",  # "Useless" expressions
-    "SIM117",  # FIXME: use single with statement for multiple context managers
+    "assert",  # S101
+    "useless-expression",  # B018
+    "multiple-with-statements",  # SIM117: FIXME: use a single `with` statement
 ]
 "pytest_jubilant/__init__.py" = [
-    "D400",  # First line should end with a period!
+    "missing-trailing-period",  # D400
 ]
 "pytest_jubilant/_main.py" = [
-    "E501",  # FIXME: line too long
-    "LOG015",  # FIXME: don't log from the root logger
-    "RUF003",  # FIXME: ambiguous character '❯'
-    "S404",  # subprocess module, core functionality for this lib
-    "S603",  # FIXME: construct charmcraft run command more statically
+    "line-too-long",  # E501: FIXME
+    "root-logger-call",  # LOG015: FIXME
+    "ambiguous-unicode-character-comment",  # RUF003: FIXME: ambiguous character '❯'
+    # The subprocess module is core functionality for this library.
+    "suspicious-subprocess-import",  # S404
+    # FIXME: construct the charmcraft run command more statically.
+    "subprocess-without-shell-equals-true",  # S603
 ]
