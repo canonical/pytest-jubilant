@@ -3,14 +3,13 @@ base: ubuntu@26.04
 sdks:
   - name: uv
     channel: latest/stable
-  # `tools` installs the Pi agent harness as well as the dev tooling (node and
-  # npm are the harness's dependencies, and the mount at ~/.pi keeps its state
-  # across a `workshop refresh`). None of the actions below need it.
+  # The project- prefix tells Workshop to load this SDK from .workshop/tools/
+  # rather than the store, and the directory and the name in its sdk.yaml must
+  # both match what follows the prefix. It installs tox, which the actions
+  # below run, and the Pi agent harness along with node and npm, which Pi needs.
   - name: project-tools
 
-# The checks CONTRIBUTING.md asks for before pushing. tox comes from uvx
-# rather than the SDK, matching its `uv tool install tox --with tox-uv`
-# bootstrap.
+# The checks CONTRIBUTING.md asks for before pushing.
 #
 # There is deliberately no integration action. Those tests need packed charms
 # and a Juju controller to deploy them to, and an unprivileged container has
@@ -18,6 +17,6 @@ sdks:
 #
 #   SMOKE_CHARM_PATH=... tox -e integration
 actions:
-  format: uvx --with tox-uv tox -e format -- "$@"
-  lint: uvx --with tox-uv tox -e lint -- "$@"
-  unit: uvx --with tox-uv tox -e unit -- "$@"
+  format: tox -e format -- "$@"
+  lint: tox -e lint -- "$@"
+  unit: tox -e unit -- "$@"
