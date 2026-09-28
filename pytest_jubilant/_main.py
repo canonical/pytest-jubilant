@@ -139,7 +139,9 @@ def pytest_configure(config: pytest.Config):
         raise pytest.UsageError(msg)
 
     if config.getoption("--juju-dump-logs") is _JUJU_DUMP_LOGS_USE_LOG_FILE:
-        log_file = config.getoption("log_file")
+        # Same lookup as pytest's logging plugin: --log-file wins, then the
+        # log_file ini setting (such as in pyproject.toml).
+        log_file = config.getoption("log_file") or config.getini("log_file")
         config.option.juju_dump_logs = (
             pathlib.Path(log_file).parent if log_file else _DEFAULT_DUMP_LOGS_DIR
         )

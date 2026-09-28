@@ -58,6 +58,19 @@ def test_dump_logs_default_path_uses_log_file_directory(pytester, tmp_path):
     assert not (pytester.path / ".logs").exists()
 
 
+def test_dump_logs_default_path_uses_ini_log_file_directory(pytester):
+    pytester.makeconftest(CONFTEST)
+    pytester.makepyfile(test_file=TEST_FILE)
+    pytester.makeini("[pytest]\nlog_file = ci-logs/pytest.log\n")
+
+    result = pytester.runpytest("--juju-dump-logs")
+    result.assert_outcomes(passed=1)
+
+    foo_log_path = pytester.path / "ci-logs" / "jubilant-deadbeef-test-file-foo-juju-debug.log"
+    assert foo_log_path.exists()
+    assert not (pytester.path / ".logs").exists()
+
+
 def test_dump_logs_default_path_ignores_log_file_when_given_explicit_path(pytester, tmp_path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
