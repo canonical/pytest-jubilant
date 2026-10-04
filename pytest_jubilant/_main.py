@@ -32,6 +32,22 @@ _LOG_WAIT = 2.0  # Time to wait before processing logs if we need them.
 # Unique per-session key to stash the model prefix for later output.
 _MODEL_PREFIX_KEY = pytest.StashKey[str]()
 
+# Directory used for --juju-dump-logs when neither an explicit path nor
+# pytest's --log-file/log_file are set.
+_DEFAULT_DUMP_LOGS_DIR = pathlib.Path(".logs")
+
+# Sentinel for "--juju-dump-logs was passed with no path", so pytest_configure
+# can resolve it against pytest's own --log-file/log_file setting once the
+# ini file has been read (pytest_addoption runs too early for that).
+_JUJU_DUMP_LOGS_USE_LOG_FILE = object()
+
+
+def _dump_logs_dir(value: str) -> pathlib.Path | None:
+    """Convert a --juju-dump-logs argument, with an empty one turning dumping off."""
+    # pathlib.Path("") is Path("."), which would dump to the current directory.
+    return pathlib.Path(value) if value else None
+
+
 # Map Python's platform.machine() names to the architecture names Juju uses.
 # Anything not listed is passed through unchanged, since names like amd64, arm64,
 # s390x, and riscv64 already match. Compare concierge's goArchToJujuArch.
@@ -96,11 +112,12 @@ def pytest_addoption(parser: pytest.Parser):
         "--juju-dump-logs",
         action="store",
         nargs="?",
-        const=pathlib.Path(".logs"),
+        const=_JUJU_DUMP_LOGS_USE_LOG_FILE,
         default=None,
-        type=pathlib.Path,
+        type=_dump_logs_dir,
         help="Dump the juju debug-log for each model prior to teardown. "
-        "The default dump location is './.logs'.",
+        "With no path, uses the directory of pytest's --log-file/log_file if set, "
+        "otherwise './.logs'.",
     )
 
 
@@ -127,6 +144,26 @@ def pytest_configure(config: pytest.Config):
                 ", the model(s) identified by --juju-model *will* be torn down!"
             )
         raise pytest.UsageError(msg)
+
+    dump_logs = config.getoption("--juju-dump-logs")
+    if dump_logs is _JUJU_DUMP_LOGS_USE_LOG_FILE:
+        # Same lookup as pytest's logging plugin: --log-file wins, then the
+        # log_file ini setting (such as in pyproject.toml).
+        try:
+            log_file = config.getoption("log_file") or config.getini("log_file")
+        except ValueError:
+            # The logging plugin is disabled (-p no:logging), so neither is registered.
+            log_file = None
+        log_dir = pathlib.Path(log_file).parent if log_file else None
+        # A bare filename has no directory to share, and dumping into the
+        # current directory would scatter logs across the project root.
+        if log_dir is None or log_dir == pathlib.Path("."):
+            log_dir = _DEFAULT_DUMP_LOGS_DIR
+        dump_logs = log_dir
+    if dump_logs is not None:
+        # Resolve now, as pytest does for its log file, so that a fixture that
+        # changes directory doesn't move where the logs are dumped at teardown.
+        config.option.juju_dump_logs = dump_logs.absolute()
 
 
 def pytest_terminal_summary(
