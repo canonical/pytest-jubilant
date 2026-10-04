@@ -8,3 +8,4 @@ dist
 /tests/.logs/
 .tmp/
 *.charm
+.workshop.lock
