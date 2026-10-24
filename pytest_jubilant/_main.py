@@ -17,8 +17,6 @@ import jubilant
 import pytest
 
 if typing.TYPE_CHECKING:
-    from collections.abc import Callable
-
     from _pytest.terminal import TerminalReporter
 
 logger = logging.getLogger("pytest-jubilant")
@@ -297,27 +295,8 @@ def _model_prefix(request: pytest.FixtureRequest) -> str:  # pyright: ignore[rep
 
 
 @pytest.fixture(scope="module")
-def _sleep_once():  # pyright: ignore[reportUnusedFunction]
-    """Return a function that sleeps when called for the first time.
-
-    The returned function does nothing on repeated calls.
-    This allows fixtures of the same scope to ensure a single sleep happens before teardown.
-    """
-    slept = False
-
-    def sleep():
-        nonlocal slept
-        if not slept:
-            time.sleep(_LOG_WAIT)
-            slept = True
-
-    return sleep
-
-
-@pytest.fixture(scope="module")
 def juju_factory(
     request: pytest.FixtureRequest,
-    _sleep_once: Callable[[], None],
     _model_prefix: str,
 ):
     """Module-scoped factory for creating one or more temporary Juju models.
@@ -344,7 +323,7 @@ def juju_factory(
 
     # BEFORE tearing down the models, dump any and all juju debug-logs
     if dump_logs:
-        _sleep_once()  # Wait for Juju to process logs or the latest lines might be missing
+        time.sleep(_LOG_WAIT)  # Wait for Juju to process logs or the latest lines might be missing
     factory._dump_all_logs()  # pyright: ignore[reportPrivateUsage]
 
     if not request.config.getoption("--no-juju-teardown"):
@@ -363,6 +342,6 @@ def juju(request: pytest.FixtureRequest, juju_factory: JujuFactory):
     """
     juju = juju_factory.get_juju("")
     if request.config.getoption("--juju-switch"):
-        assert juju.model  # noqa: S101
+        assert juju.model  # ruff: ignore[assert]
         juju.cli("switch", juju.model, include_model=False)
     return juju
