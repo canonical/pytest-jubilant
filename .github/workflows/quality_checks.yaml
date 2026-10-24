@@ -29,7 +29,7 @@ jobs:
 
   run-integration:
     needs: [lint, unit]
-    uses: ./.github/workflows/integration.yaml
+    uses: $/.github/workflows/integration.yaml
     permissions:
       actions: write
       contents: read

@@ -61,4 +61,4 @@ jobs:
 
   secscan:
     if: startsWith(github.ref, 'refs/tags/')
-    uses: ./.github/workflows/sbom-secscan.yaml
+    uses: $/.github/workflows/sbom-secscan.yaml
