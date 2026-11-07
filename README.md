@@ -219,7 +219,7 @@ pytest tests/integration -k test_something --juju-model hello --juju-switch
 When all the tests in a module have completed, but prior to tearing down the models owned by a [juju_factory](#juju_factory), dump the `juju debug-log` for each managed model into the specified directory.
 
 - By default, `juju debug-log` is not run, and logs aren't dumped.
-- If `--juju-dump-logs` is passed, logs are dumped to `<CWD>/.logs/`.
+- If `--juju-dump-logs` is passed with no path, logs are dumped alongside pytest's own `--log-file`/`log_file` location, if one is configured; otherwise to `<CWD>/.logs/`.
 - If `--juju-dump-logs <target dir>` is passed, logs are dumped to `<target dir>/`.
 
 The file naming scheme is:
@@ -235,7 +235,8 @@ pytest tests/integration/test_ingress.py --juju-dump-logs=debug_logs
 # ./debug_logs/jubilant-abcd1234-test-ingress-juju-debug.log
 
 pytest tests/integration/test_ingress.py --juju-model foo --juju-dump-logs
-# Once the tests are done, you'll find the logs in the default directory:
+# Once the tests are done, you'll find the logs in the default directory
+# (or next to pytest's --log-file/log_file, if one is set):
 # ./.logs/foo-test-ingress-juju-debug.log
 
 pytest integration/test_ingress.py
