@@ -433,7 +433,7 @@ zizmor = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jubilant", specifier = ">=1,<2" },
+    { name = "jubilant", specifier = ">=1.7,<2" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
 
