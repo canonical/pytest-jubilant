@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
@@ -10,7 +12,7 @@ def test_use_factory(juju_factory):
 """.strip()
 
 
-def test_dump_logs_not_passed(pytester):
+def test_dump_logs_not_passed(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -20,7 +22,7 @@ def test_dump_logs_not_passed(pytester):
     assert not (pytester.path / ".logs").exists()
 
 
-def test_dump_logs_empty_path_disables(pytester):
+def test_dump_logs_empty_path_disables(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -30,7 +32,7 @@ def test_dump_logs_empty_path_disables(pytester):
     assert not (pytester.path / ".logs").exists()
 
 
-def test_dump_logs_default_path(pytester):
+def test_dump_logs_default_path(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -45,7 +47,7 @@ def test_dump_logs_default_path(pytester):
     assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
 
-def test_dump_logs_custom_path(pytester, tmp_path):
+def test_dump_logs_custom_path(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
     custom_dir = tmp_path / "custom-logs"
@@ -61,7 +63,7 @@ def test_dump_logs_custom_path(pytester, tmp_path):
     assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
 
-def test_juju_debug_log_on_failure(pytester, tmp_path):
+def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(
         test_file="""

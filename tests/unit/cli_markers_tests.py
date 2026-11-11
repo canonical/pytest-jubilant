@@ -17,11 +17,11 @@ def _append(path: Path, model: str) -> None:
         path.write_text(f"{model}")
 
 
-def _mock_add(self, model, *args: Any, **kwargs: Any):
+def _mock_add(self: jubilant.Juju, model: str, *args: Any, **kwargs: Any):
     _append(Path("added.txt"), model)
 
 
-def _mock_destroy(self, model, *args: Any, **kwargs: Any):
+def _mock_destroy(self: jubilant.Juju, model: str, *args: Any, **kwargs: Any):
     _append(Path("destroyed.txt"), model)
 
 
