@@ -101,13 +101,22 @@ select = [
     "FA",  # flake8-future-annotations
     "TC",  # flake8-type-checking
     "D",  # pyflakes-docstrings
+    "ANN",  # flake8-annotations
 ]
 ignore = [
+    # Return types of magic methods are obvious (and mostly enforced by the type checker).
+    "missing-return-type-special-method",  # ANN204
+    # FIXME: replace uses of Any with more specific types.
+    "any-type",  # ANN401
     # Incompatible with D211 (blank-line-before-class).
     "incorrect-blank-line-before-class",  # D203
     # Incompatible with D212 (multi-line-summary-first-line).
     "multi-line-summary-second-line",  # D213
 ]
+
+[tool.ruff.lint.flake8-annotations]
+# Allow `*args: Any` and `**kwargs: Any`, for when ANN401 is enabled.
+allow-star-arg-any = true
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
@@ -116,6 +125,9 @@ ignore = [
     "assert",  # S101
     "useless-expression",  # B018
     "multiple-with-statements",  # SIM117: FIXME: use a single `with` statement
+    # Test function return types add noise without much value.
+    "missing-return-type-undocumented-public-function",  # ANN201
+    "missing-return-type-private-function",  # ANN202
 ]
 "pytest_jubilant/__init__.py" = [
     "missing-trailing-period",  # D400

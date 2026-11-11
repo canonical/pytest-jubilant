@@ -1,9 +1,11 @@
-from unittest.mock import call
+from unittest.mock import MagicMock, call
+
+import jubilant
 
 from pytest_jubilant._main import _juju_arch
 
 
-def test_rootmodel(cli_mock, juju):
+def test_rootmodel(cli_mock: MagicMock, juju: jubilant.Juju):
     juju.deploy("something")
 
     assert cli_mock.called

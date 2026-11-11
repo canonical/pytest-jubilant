@@ -17,6 +17,8 @@ import jubilant
 import pytest
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from _pytest.terminal import TerminalReporter
 
 logger = logging.getLogger("pytest-jubilant")
@@ -50,7 +52,7 @@ def _juju_arch() -> str:
     return _MACHINE_TO_JUJU_ARCH.get(machine, machine)
 
 
-def pytest_addoption(parser: pytest.Parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Register the ``--juju-*`` command-line options under the "jubilant" group.
 
     Pytest hook: https://docs.pytest.org/en/stable/reference/reference.html#pytest.hookspec.pytest_addoption
@@ -104,7 +106,7 @@ def pytest_addoption(parser: pytest.Parser):
     )
 
 
-def pytest_configure(config: pytest.Config):
+def pytest_configure(config: pytest.Config) -> None:
     """Register the ``juju_setup`` and ``juju_teardown`` markers, and validate option combinations.
 
     Pytest hook: https://docs.pytest.org/en/stable/reference/reference.html#pytest.hookspec.pytest_configure
@@ -133,7 +135,7 @@ def pytest_terminal_summary(
     terminalreporter: TerminalReporter,
     exitstatus: pytest.ExitCode,
     config: pytest.Config,
-):
+) -> None:
     """Print a usage hint after the test summary."""
     prefix = config.stash.get(_MODEL_PREFIX_KEY, default=None)
     if prefix is None:  # nothing that used juju_factory ran
@@ -153,7 +155,7 @@ def pytest_terminal_summary(
         terminalreporter.write_line("--no-juju-teardown")
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]):
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Skip ``juju_setup``/``juju_teardown`` tests when the matching ``--no-juju-*`` flag is set.
 
     Pytest hook: https://docs.pytest.org/en/stable/reference/reference.html#pytest.hookspec.pytest_collection_modifyitems
@@ -268,7 +270,7 @@ class _JujuFactory:
         self._models[model_name] = juju
         return juju
 
-    def _dump_all_logs(self):
+    def _dump_all_logs(self) -> None:
         if not self._log_path:
             return
 
@@ -280,7 +282,7 @@ class _JujuFactory:
             jdl_path.write_text(jdl)
             logger.info("Wrote full `juju debug-log` for model %s to %s", model, jdl_path)
 
-    def _teardown(self, force: bool = False):
+    def _teardown(self, force: bool = False) -> None:
         for model, juju in self._models.items():
             juju.destroy_model(model, destroy_storage=True, force=force)
 
@@ -298,7 +300,7 @@ def _model_prefix(request: pytest.FixtureRequest) -> str:  # pyright: ignore[rep
 def juju_factory(
     request: pytest.FixtureRequest,
     _model_prefix: str,
-):
+) -> Iterator[JujuFactory]:
     """Module-scoped factory for creating one or more temporary Juju models.
 
     Use this when a test module needs more than one model. For the common
@@ -333,7 +335,7 @@ def juju_factory(
 
 
 @pytest.fixture(scope="module")
-def juju(request: pytest.FixtureRequest, juju_factory: JujuFactory):
+def juju(request: pytest.FixtureRequest, juju_factory: JujuFactory) -> jubilant.Juju:
     """Module-scoped temporary Juju model.
 
     Returns a `jubilant.Juju` bound to a freshly created model that lives for
