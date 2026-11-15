@@ -8,7 +8,7 @@ import pytest
 import pytest_jubilant
 
 
-def _mock_add_model(self, model: str, *args: Any, **kwargs: Any):
+def _mock_add_model(self: jubilant.Juju, model: str, *args: Any, **kwargs: Any):
     msg = (
         f"ERROR failed to create new model: "
         f'model "{model}" for admin already exists (already exists)'

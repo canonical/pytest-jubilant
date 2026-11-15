@@ -1,0 +1,5 @@
+# Pi agent harness
+curl -fsSL https://pi.dev/install.sh | sh
+
+# tox, as CONTRIBUTING.md asks for
+uv tool install tox --with tox-uv

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 pytest_plugins = ["pytester"]
 
 CONFTEST = (Path(__file__).parent / "conftest.py").read_text()
@@ -10,7 +12,7 @@ def test_use_factory(juju_factory):
 """.strip()
 
 
-def test_dump_logs_not_passed(pytester):
+def test_dump_logs_not_passed(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -20,7 +22,7 @@ def test_dump_logs_not_passed(pytester):
     assert not (pytester.path / ".logs").exists()
 
 
-def test_dump_logs_empty_path_disables(pytester):
+def test_dump_logs_empty_path_disables(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -30,7 +32,7 @@ def test_dump_logs_empty_path_disables(pytester):
     assert not list(pytester.path.rglob("*-juju-debug.log"))
 
 
-def test_dump_logs_default_path(pytester):
+def test_dump_logs_default_path(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -45,7 +47,7 @@ def test_dump_logs_default_path(pytester):
     assert bar_log_path.read_text() == "stdout patched by conftest.py"
 
 
-def test_dump_logs_default_path_uses_log_file_directory(pytester, tmp_path):
+def test_dump_logs_default_path_uses_log_file_directory(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
     log_file = tmp_path / "pytest-logs" / "pytest.log"
@@ -58,7 +60,7 @@ def test_dump_logs_default_path_uses_log_file_directory(pytester, tmp_path):
     assert not (pytester.path / ".logs").exists()
 
 
-def test_dump_logs_default_path_uses_ini_log_file_directory(pytester):
+def test_dump_logs_default_path_uses_ini_log_file_directory(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
     pytester.makeini("[pytest]\nlog_file = ci-logs/pytest.log\n")
@@ -71,7 +73,7 @@ def test_dump_logs_default_path_uses_ini_log_file_directory(pytester):
     assert not (pytester.path / ".logs").exists()
 
 
-def test_dump_logs_default_path_ignores_log_file_without_directory(pytester):
+def test_dump_logs_default_path_ignores_log_file_without_directory(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
     pytester.makeini("[pytest]\nlog_file = pytest.log\n")
@@ -84,7 +86,7 @@ def test_dump_logs_default_path_ignores_log_file_without_directory(pytester):
     assert not list(pytester.path.glob("*-juju-debug.log"))
 
 
-def test_dump_logs_default_path_without_logging_plugin(pytester):
+def test_dump_logs_default_path_without_logging_plugin(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -95,7 +97,9 @@ def test_dump_logs_default_path_without_logging_plugin(pytester):
     assert foo_log_path.exists()
 
 
-def test_dump_logs_default_path_ignores_log_file_when_given_explicit_path(pytester, tmp_path):
+def test_dump_logs_default_path_ignores_log_file_when_given_explicit_path(
+    pytester: pytest.Pytester, tmp_path: Path
+):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
     log_file = tmp_path / "pytest-logs" / "pytest.log"
@@ -109,7 +113,7 @@ def test_dump_logs_default_path_ignores_log_file_when_given_explicit_path(pytest
     assert not (log_file.parent / "jubilant-deadbeef-test-file-foo-juju-debug.log").exists()
 
 
-def test_dump_logs_custom_path(pytester, tmp_path):
+def test_dump_logs_custom_path(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(test_file=TEST_FILE)
     custom_dir = tmp_path / "custom-logs"
@@ -138,7 +142,7 @@ def _chdir_elsewhere(tmp_path_factory):
 """
 
 
-def test_dump_logs_relative_path_resolved_before_chdir(pytester):
+def test_dump_logs_relative_path_resolved_before_chdir(pytester: pytest.Pytester):
     pytester.makeconftest(CONFTEST + CHDIR_FIXTURE)
     pytester.makepyfile(test_file=TEST_FILE)
 
@@ -151,7 +155,7 @@ def test_dump_logs_relative_path_resolved_before_chdir(pytester):
     assert foo_log_path.exists()
 
 
-def test_juju_debug_log_on_failure(pytester, tmp_path):
+def test_juju_debug_log_on_failure(pytester: pytest.Pytester, tmp_path: Path):
     pytester.makeconftest(CONFTEST)
     pytester.makepyfile(
         test_file="""
