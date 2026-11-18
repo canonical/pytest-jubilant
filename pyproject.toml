@@ -38,8 +38,12 @@ integration = [
 # `uv run --only-group <name> <tool> …` (or `uv export --only-group <name>`
 # when the tool must be installed into the system environment).
 tox = [
-    "tox~=4.25",
-    "tox-uv~=1.13",
+    # CI runs tox on the runner's default Python, never 3.10. Scoping the
+    # tool to 3.11+ keeps filelock (via tox and virtualenv) at a release with
+    # the security fixes: filelock 4.2 needs 3.11, so a 3.10 resolution
+    # would lock an older one.
+    "tox~=4.25; python_version >= '3.11'",
+    "tox-uv~=1.13; python_version >= '3.11'",
 ]
 zizmor = [
     "zizmor~=1.23",
